@@ -1,0 +1,10 @@
+transaction_id,expected_decision,expected_reason,expected_ledger_amount,expected_gateway_amount,expected_settlement_amount,expected_bank_amount,expected_variance,expected_match_type,expected_confidence_band,human_review_required,adversarial_tag
+THR001,MATCH,,1250.25,1250.25,1225.25,1225.25,0.00,EXACT,high,false,ballast
+THR002,MATCH,,1500.50,1500.50,1470.49,1470.49,0.00,EXACT,high,false,ballast
+THR003,MATCH,,1750.75,1750.75,1715.73,1715.73,0.00,EXACT,high,false,ballast
+THR004,MATCH,,2001.00,2001.00,1960.98,1960.98,0.00,EXACT,high,false,ballast
+ADVROUND99,MATCH,,4000.00,4000.00,3920.00,3919.01,0.99,TOLERANCE,high,False,sub_rupee_rounding
+ADVONE00,EXCEPTION,unexplained_variance,4000.00,4000.00,3920.00,3919.00,1.00,EXCEPTION,high,True,one_rupee_cap
+ADVJUST01,EXCEPTION,unexplained_variance,4100.00,4100.00,4018.00,4016.99,1.01,EXCEPTION,high,True,just_over_rupee
+ADVTEN00,EXCEPTION,unexplained_variance,4200.00,4200.00,4116.00,4106.00,10.00,EXCEPTION,high,True,ten_rupee_residual
+ADVFIFTEEN,EXCEPTION,amount_mismatch,4300.00,4300.00,4214.00,4199.00,15.00,EXCEPTION,high,True,over_ten_mismatch

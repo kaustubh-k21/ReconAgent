@@ -1,0 +1,742 @@
+{
+  "frozen_at": "2026-08-30T14:26:23",
+  "protocol": "adversarial_independent",
+  "heldout_untouched": true,
+  "classifier_mode": "rule_based",
+  "saw_ground_truth": false,
+  "totals": {
+    "matching_rows": 52,
+    "false_match_count": 0,
+    "correct_matches": 36,
+    "correct_exceptions": 15,
+    "decision_accuracy": 0.9808,
+    "decision_accuracy_with_pending": 1.0,
+    "pending_expected": 1,
+    "pending_correct": 1,
+    "match_type_accuracy_given_both_match": 1.0,
+    "match_type_n": 36,
+    "exception_reason_accuracy_given_both_exception": 1.0,
+    "exception_reason_n": 15,
+    "ingest_suites": 2,
+    "ingest_suites_ok": 2,
+    "ingest_pass_rate": 1.0
+  },
+  "suites": {
+    "near_id_collision": {
+      "dataset": "near_id_collision",
+      "kind": "matching",
+      "ingest_status": "OK",
+      "n": 9,
+      "harm": {
+        "false_match_count": 0,
+        "false_matches": [],
+        "note": "False MATCH is the dangerous error: a break was auto-cleared.",
+        "pending_cleared_as_match": []
+      },
+      "false_exception_count": 0,
+      "false_exceptions_sample": [],
+      "correct_matches": 7,
+      "correct_exceptions": 2,
+      "pending_when_match_expected": [],
+      "pending_when_exception_expected": [],
+      "review_when_match_expected": [],
+      "review_when_exception_expected": [],
+      "missing_predictions": [],
+      "decision_accuracy": 1.0,
+      "match_precision": 1.0,
+      "match_recall": 1.0,
+      "match_type_accuracy_given_both_match": 1.0,
+      "match_type_n": 7,
+      "match_type_by_expected": {
+        "EXACT": {
+          "n": 7,
+          "accuracy": 1.0
+        }
+      },
+      "exception_reason_accuracy_given_both_exception": 1.0,
+      "exception_reason_n": 2,
+      "exception_reason_by_expected": {
+        "wrong_transaction": {
+          "n": 2,
+          "caught_as_exception": 2,
+          "reason_accuracy": 1.0
+        }
+      },
+      "confusion_expected_vs_predicted": {
+        "EXCEPTION->EXCEPTION": 2,
+        "MATCH->MATCH": 7
+      },
+      "ground_truth": "/Users/kaustubhh/Desktop/reconagent/evaluation_datasets/adversarial/near_id_collision/ground_truth.csv",
+      "predictions": "/Users/kaustubhh/Desktop/reconagent/evaluation_datasets/_work/adversarial/near_id_collision/predictions.json",
+      "agent_meta": {
+        "dataset": "near_id_collision",
+        "adapter": {
+          "source_dir": "/Users/kaustubhh/Desktop/reconagent/evaluation_datasets/adversarial/near_id_collision",
+          "dest_dir": "/Users/kaustubhh/Desktop/reconagent/evaluation_datasets/_work/adversarial/near_id_collision/engine",
+          "normalize_ids": true,
+          "copied_ground_truth": false,
+          "invented_batch_ids": false,
+          "ledger_rows": 9,
+          "settlement_rows": 8,
+          "bank_rows": 8,
+          "money_validation": "OK",
+          "column_map": {
+            "merchant_order_id": "order_id",
+            "customer_name": "customer",
+            "gross_amount": "amount",
+            "net_amount": "net_amount",
+            "refund_amount": "refund_amount",
+            "value_date": "credit_date",
+            "debit_amount": "debit_amount",
+            "payout_batch": "settlement_batch_id"
+          }
+        },
+        "classifier_mode": "rule_based",
+        "schema_version": 1
+      },
+      "pending_score": {
+        "pending_expected": 0,
+        "pending_correct": 0,
+        "pending_accuracy": null,
+        "pending_misses": []
+      },
+      "decision_accuracy_with_pending": 1.0
+    },
+    "duplicate_identity": {
+      "dataset": "duplicate_identity",
+      "kind": "matching",
+      "ingest_status": "OK",
+      "n": 6,
+      "harm": {
+        "false_match_count": 0,
+        "false_matches": [],
+        "note": "False MATCH is the dangerous error: a break was auto-cleared.",
+        "pending_cleared_as_match": []
+      },
+      "false_exception_count": 0,
+      "false_exceptions_sample": [],
+      "correct_matches": 4,
+      "correct_exceptions": 2,
+      "pending_when_match_expected": [],
+      "pending_when_exception_expected": [],
+      "review_when_match_expected": [],
+      "review_when_exception_expected": [],
+      "missing_predictions": [],
+      "decision_accuracy": 1.0,
+      "match_precision": 1.0,
+      "match_recall": 1.0,
+      "match_type_accuracy_given_both_match": 1.0,
+      "match_type_n": 4,
+      "match_type_by_expected": {
+        "EXACT": {
+          "n": 4,
+          "accuracy": 1.0
+        }
+      },
+      "exception_reason_accuracy_given_both_exception": 1.0,
+      "exception_reason_n": 2,
+      "exception_reason_by_expected": {
+        "duplicate_bank_credit": {
+          "n": 1,
+          "caught_as_exception": 1,
+          "reason_accuracy": 1.0
+        },
+        "duplicate_entry": {
+          "n": 1,
+          "caught_as_exception": 1,
+          "reason_accuracy": 1.0
+        }
+      },
+      "confusion_expected_vs_predicted": {
+        "EXCEPTION->EXCEPTION": 2,
+        "MATCH->MATCH": 4
+      },
+      "ground_truth": "/Users/kaustubhh/Desktop/reconagent/evaluation_datasets/adversarial/duplicate_identity/ground_truth.csv",
+      "predictions": "/Users/kaustubhh/Desktop/reconagent/evaluation_datasets/_work/adversarial/duplicate_identity/predictions.json",
+      "agent_meta": {
+        "dataset": "duplicate_identity",
+        "adapter": {
+          "source_dir": "/Users/kaustubhh/Desktop/reconagent/evaluation_datasets/adversarial/duplicate_identity",
+          "dest_dir": "/Users/kaustubhh/Desktop/reconagent/evaluation_datasets/_work/adversarial/duplicate_identity/engine",
+          "normalize_ids": true,
+          "copied_ground_truth": false,
+          "invented_batch_ids": false,
+          "ledger_rows": 7,
+          "settlement_rows": 6,
+          "bank_rows": 7,
+          "money_validation": "OK",
+          "column_map": {
+            "merchant_order_id": "order_id",
+            "customer_name": "customer",
+            "gross_amount": "amount",
+            "net_amount": "net_amount",
+            "refund_amount": "refund_amount",
+            "value_date": "credit_date",
+            "debit_amount": "debit_amount",
+            "payout_batch": "settlement_batch_id"
+          }
+        },
+        "classifier_mode": "rule_based",
+        "schema_version": 1
+      },
+      "pending_score": {
+        "pending_expected": 0,
+        "pending_correct": 0,
+        "pending_accuracy": null,
+        "pending_misses": []
+      },
+      "decision_accuracy_with_pending": 1.0
+    },
+    "amount_threshold": {
+      "dataset": "amount_threshold",
+      "kind": "matching",
+      "ingest_status": "OK",
+      "n": 9,
+      "harm": {
+        "false_match_count": 0,
+        "false_matches": [],
+        "note": "False MATCH is the dangerous error: a break was auto-cleared.",
+        "pending_cleared_as_match": []
+      },
+      "false_exception_count": 0,
+      "false_exceptions_sample": [],
+      "correct_matches": 5,
+      "correct_exceptions": 4,
+      "pending_when_match_expected": [],
+      "pending_when_exception_expected": [],
+      "review_when_match_expected": [],
+      "review_when_exception_expected": [],
+      "missing_predictions": [],
+      "decision_accuracy": 1.0,
+      "match_precision": 1.0,
+      "match_recall": 1.0,
+      "match_type_accuracy_given_both_match": 1.0,
+      "match_type_n": 5,
+      "match_type_by_expected": {
+        "EXACT": {
+          "n": 4,
+          "accuracy": 1.0
+        },
+        "TOLERANCE": {
+          "n": 1,
+          "accuracy": 1.0
+        }
+      },
+      "exception_reason_accuracy_given_both_exception": 1.0,
+      "exception_reason_n": 4,
+      "exception_reason_by_expected": {
+        "amount_mismatch": {
+          "n": 1,
+          "caught_as_exception": 1,
+          "reason_accuracy": 1.0
+        },
+        "unexplained_variance": {
+          "n": 3,
+          "caught_as_exception": 3,
+          "reason_accuracy": 1.0
+        }
+      },
+      "confusion_expected_vs_predicted": {
+        "EXCEPTION->EXCEPTION": 4,
+        "MATCH->MATCH": 5
+      },
+      "ground_truth": "/Users/kaustubhh/Desktop/reconagent/evaluation_datasets/adversarial/amount_threshold/ground_truth.csv",
+      "predictions": "/Users/kaustubhh/Desktop/reconagent/evaluation_datasets/_work/adversarial/amount_threshold/predictions.json",
+      "agent_meta": {
+        "dataset": "amount_threshold",
+        "adapter": {
+          "source_dir": "/Users/kaustubhh/Desktop/reconagent/evaluation_datasets/adversarial/amount_threshold",
+          "dest_dir": "/Users/kaustubhh/Desktop/reconagent/evaluation_datasets/_work/adversarial/amount_threshold/engine",
+          "normalize_ids": true,
+          "copied_ground_truth": false,
+          "invented_batch_ids": false,
+          "ledger_rows": 9,
+          "settlement_rows": 9,
+          "bank_rows": 9,
+          "money_validation": "OK",
+          "column_map": {
+            "merchant_order_id": "order_id",
+            "customer_name": "customer",
+            "gross_amount": "amount",
+            "net_amount": "net_amount",
+            "refund_amount": "refund_amount",
+            "value_date": "credit_date",
+            "debit_amount": "debit_amount",
+            "payout_batch": "settlement_batch_id"
+          }
+        },
+        "classifier_mode": "rule_based",
+        "schema_version": 1
+      },
+      "pending_score": {
+        "pending_expected": 0,
+        "pending_correct": 0,
+        "pending_accuracy": null,
+        "pending_misses": []
+      },
+      "decision_accuracy_with_pending": 1.0
+    },
+    "n1_distractor": {
+      "dataset": "n1_distractor",
+      "kind": "matching",
+      "ingest_status": "OK",
+      "n": 8,
+      "harm": {
+        "false_match_count": 0,
+        "false_matches": [],
+        "note": "False MATCH is the dangerous error: a break was auto-cleared.",
+        "pending_cleared_as_match": []
+      },
+      "false_exception_count": 0,
+      "false_exceptions_sample": [],
+      "correct_matches": 6,
+      "correct_exceptions": 2,
+      "pending_when_match_expected": [],
+      "pending_when_exception_expected": [],
+      "review_when_match_expected": [],
+      "review_when_exception_expected": [],
+      "missing_predictions": [],
+      "decision_accuracy": 1.0,
+      "match_precision": 1.0,
+      "match_recall": 1.0,
+      "match_type_accuracy_given_both_match": 1.0,
+      "match_type_n": 6,
+      "match_type_by_expected": {
+        "EXACT": {
+          "n": 3,
+          "accuracy": 1.0
+        },
+        "MANY_TO_ONE": {
+          "n": 3,
+          "accuracy": 1.0
+        }
+      },
+      "exception_reason_accuracy_given_both_exception": 1.0,
+      "exception_reason_n": 2,
+      "exception_reason_by_expected": {
+        "missing_bank_credit": {
+          "n": 2,
+          "caught_as_exception": 2,
+          "reason_accuracy": 1.0
+        }
+      },
+      "confusion_expected_vs_predicted": {
+        "EXCEPTION->EXCEPTION": 2,
+        "MATCH->MATCH": 6
+      },
+      "ground_truth": "/Users/kaustubhh/Desktop/reconagent/evaluation_datasets/adversarial/n1_distractor/ground_truth.csv",
+      "predictions": "/Users/kaustubhh/Desktop/reconagent/evaluation_datasets/_work/adversarial/n1_distractor/predictions.json",
+      "agent_meta": {
+        "dataset": "n1_distractor",
+        "adapter": {
+          "source_dir": "/Users/kaustubhh/Desktop/reconagent/evaluation_datasets/adversarial/n1_distractor",
+          "dest_dir": "/Users/kaustubhh/Desktop/reconagent/evaluation_datasets/_work/adversarial/n1_distractor/engine",
+          "normalize_ids": true,
+          "copied_ground_truth": false,
+          "invented_batch_ids": false,
+          "ledger_rows": 8,
+          "settlement_rows": 8,
+          "bank_rows": 6,
+          "money_validation": "OK",
+          "column_map": {
+            "merchant_order_id": "order_id",
+            "customer_name": "customer",
+            "gross_amount": "amount",
+            "net_amount": "net_amount",
+            "refund_amount": "refund_amount",
+            "value_date": "credit_date",
+            "debit_amount": "debit_amount",
+            "payout_batch": "settlement_batch_id"
+          }
+        },
+        "classifier_mode": "rule_based",
+        "schema_version": 1
+      },
+      "pending_score": {
+        "pending_expected": 0,
+        "pending_correct": 0,
+        "pending_accuracy": null,
+        "pending_misses": []
+      },
+      "decision_accuracy_with_pending": 1.0
+    },
+    "fee_tds_conflict": {
+      "dataset": "fee_tds_conflict",
+      "kind": "matching",
+      "ingest_status": "OK",
+      "n": 5,
+      "harm": {
+        "false_match_count": 0,
+        "false_matches": [],
+        "note": "False MATCH is the dangerous error: a break was auto-cleared.",
+        "pending_cleared_as_match": []
+      },
+      "false_exception_count": 0,
+      "false_exceptions_sample": [],
+      "correct_matches": 3,
+      "correct_exceptions": 2,
+      "pending_when_match_expected": [],
+      "pending_when_exception_expected": [],
+      "review_when_match_expected": [],
+      "review_when_exception_expected": [],
+      "missing_predictions": [],
+      "decision_accuracy": 1.0,
+      "match_precision": 1.0,
+      "match_recall": 1.0,
+      "match_type_accuracy_given_both_match": 1.0,
+      "match_type_n": 3,
+      "match_type_by_expected": {
+        "EXACT": {
+          "n": 3,
+          "accuracy": 1.0
+        }
+      },
+      "exception_reason_accuracy_given_both_exception": 1.0,
+      "exception_reason_n": 2,
+      "exception_reason_by_expected": {
+        "amount_mismatch": {
+          "n": 2,
+          "caught_as_exception": 2,
+          "reason_accuracy": 1.0
+        }
+      },
+      "confusion_expected_vs_predicted": {
+        "EXCEPTION->EXCEPTION": 2,
+        "MATCH->MATCH": 3
+      },
+      "ground_truth": "/Users/kaustubhh/Desktop/reconagent/evaluation_datasets/adversarial/fee_tds_conflict/ground_truth.csv",
+      "predictions": "/Users/kaustubhh/Desktop/reconagent/evaluation_datasets/_work/adversarial/fee_tds_conflict/predictions.json",
+      "agent_meta": {
+        "dataset": "fee_tds_conflict",
+        "adapter": {
+          "source_dir": "/Users/kaustubhh/Desktop/reconagent/evaluation_datasets/adversarial/fee_tds_conflict",
+          "dest_dir": "/Users/kaustubhh/Desktop/reconagent/evaluation_datasets/_work/adversarial/fee_tds_conflict/engine",
+          "normalize_ids": true,
+          "copied_ground_truth": false,
+          "invented_batch_ids": false,
+          "ledger_rows": 5,
+          "settlement_rows": 5,
+          "bank_rows": 5,
+          "money_validation": "OK",
+          "column_map": {
+            "merchant_order_id": "order_id",
+            "customer_name": "customer",
+            "gross_amount": "amount",
+            "net_amount": "net_amount",
+            "refund_amount": "refund_amount",
+            "value_date": "credit_date",
+            "debit_amount": "debit_amount",
+            "payout_batch": "settlement_batch_id"
+          }
+        },
+        "classifier_mode": "rule_based",
+        "schema_version": 1
+      },
+      "pending_score": {
+        "pending_expected": 0,
+        "pending_correct": 0,
+        "pending_accuracy": null,
+        "pending_misses": []
+      },
+      "decision_accuracy_with_pending": 1.0
+    },
+    "sla_boundary": {
+      "dataset": "sla_boundary",
+      "kind": "matching",
+      "ingest_status": "OK",
+      "n": 6,
+      "harm": {
+        "false_match_count": 0,
+        "false_matches": [],
+        "note": "False MATCH is the dangerous error: a break was auto-cleared.",
+        "pending_cleared_as_match": []
+      },
+      "false_exception_count": 0,
+      "false_exceptions_sample": [],
+      "correct_matches": 4,
+      "correct_exceptions": 1,
+      "pending_when_match_expected": [],
+      "pending_when_exception_expected": [],
+      "review_when_match_expected": [],
+      "review_when_exception_expected": [],
+      "missing_predictions": [],
+      "decision_accuracy": 0.8333,
+      "match_precision": 1.0,
+      "match_recall": 1.0,
+      "match_type_accuracy_given_both_match": 1.0,
+      "match_type_n": 4,
+      "match_type_by_expected": {
+        "EXACT": {
+          "n": 3,
+          "accuracy": 1.0
+        },
+        "FUZZY": {
+          "n": 1,
+          "accuracy": 1.0
+        }
+      },
+      "exception_reason_accuracy_given_both_exception": 1.0,
+      "exception_reason_n": 1,
+      "exception_reason_by_expected": {
+        "missing_bank_credit": {
+          "n": 1,
+          "caught_as_exception": 1,
+          "reason_accuracy": 1.0
+        }
+      },
+      "confusion_expected_vs_predicted": {
+        "EXCEPTION->EXCEPTION": 1,
+        "MATCH->MATCH": 4,
+        "PENDING->PENDING": 1
+      },
+      "ground_truth": "/Users/kaustubhh/Desktop/reconagent/evaluation_datasets/adversarial/sla_boundary/ground_truth.csv",
+      "predictions": "/Users/kaustubhh/Desktop/reconagent/evaluation_datasets/_work/adversarial/sla_boundary/predictions.json",
+      "agent_meta": {
+        "dataset": "sla_boundary",
+        "adapter": {
+          "source_dir": "/Users/kaustubhh/Desktop/reconagent/evaluation_datasets/adversarial/sla_boundary",
+          "dest_dir": "/Users/kaustubhh/Desktop/reconagent/evaluation_datasets/_work/adversarial/sla_boundary/engine",
+          "normalize_ids": true,
+          "copied_ground_truth": false,
+          "invented_batch_ids": false,
+          "ledger_rows": 6,
+          "settlement_rows": 6,
+          "bank_rows": 4,
+          "money_validation": "OK",
+          "column_map": {
+            "merchant_order_id": "order_id",
+            "customer_name": "customer",
+            "gross_amount": "amount",
+            "net_amount": "net_amount",
+            "refund_amount": "refund_amount",
+            "value_date": "credit_date",
+            "debit_amount": "debit_amount",
+            "payout_batch": "settlement_batch_id"
+          }
+        },
+        "classifier_mode": "rule_based",
+        "schema_version": 1
+      },
+      "pending_score": {
+        "pending_expected": 1,
+        "pending_correct": 1,
+        "pending_accuracy": 1.0,
+        "pending_misses": []
+      },
+      "decision_accuracy_with_pending": 1.0
+    },
+    "reversal_debit": {
+      "dataset": "reversal_debit",
+      "kind": "matching",
+      "ingest_status": "OK",
+      "n": 5,
+      "harm": {
+        "false_match_count": 0,
+        "false_matches": [],
+        "note": "False MATCH is the dangerous error: a break was auto-cleared.",
+        "pending_cleared_as_match": []
+      },
+      "false_exception_count": 0,
+      "false_exceptions_sample": [],
+      "correct_matches": 3,
+      "correct_exceptions": 2,
+      "pending_when_match_expected": [],
+      "pending_when_exception_expected": [],
+      "review_when_match_expected": [],
+      "review_when_exception_expected": [],
+      "missing_predictions": [],
+      "decision_accuracy": 1.0,
+      "match_precision": 1.0,
+      "match_recall": 1.0,
+      "match_type_accuracy_given_both_match": 1.0,
+      "match_type_n": 3,
+      "match_type_by_expected": {
+        "EXACT": {
+          "n": 3,
+          "accuracy": 1.0
+        }
+      },
+      "exception_reason_accuracy_given_both_exception": 1.0,
+      "exception_reason_n": 2,
+      "exception_reason_by_expected": {
+        "refund_full": {
+          "n": 1,
+          "caught_as_exception": 1,
+          "reason_accuracy": 1.0
+        },
+        "refund_partial": {
+          "n": 1,
+          "caught_as_exception": 1,
+          "reason_accuracy": 1.0
+        }
+      },
+      "confusion_expected_vs_predicted": {
+        "EXCEPTION->EXCEPTION": 2,
+        "MATCH->MATCH": 3
+      },
+      "ground_truth": "/Users/kaustubhh/Desktop/reconagent/evaluation_datasets/adversarial/reversal_debit/ground_truth.csv",
+      "predictions": "/Users/kaustubhh/Desktop/reconagent/evaluation_datasets/_work/adversarial/reversal_debit/predictions.json",
+      "agent_meta": {
+        "dataset": "reversal_debit",
+        "adapter": {
+          "source_dir": "/Users/kaustubhh/Desktop/reconagent/evaluation_datasets/adversarial/reversal_debit",
+          "dest_dir": "/Users/kaustubhh/Desktop/reconagent/evaluation_datasets/_work/adversarial/reversal_debit/engine",
+          "normalize_ids": true,
+          "copied_ground_truth": false,
+          "invented_batch_ids": false,
+          "ledger_rows": 5,
+          "settlement_rows": 5,
+          "bank_rows": 6,
+          "money_validation": "OK",
+          "column_map": {
+            "merchant_order_id": "order_id",
+            "customer_name": "customer",
+            "gross_amount": "amount",
+            "net_amount": "net_amount",
+            "refund_amount": "refund_amount",
+            "value_date": "credit_date",
+            "debit_amount": "debit_amount",
+            "payout_batch": "settlement_batch_id"
+          }
+        },
+        "classifier_mode": "rule_based",
+        "schema_version": 1
+      },
+      "pending_score": {
+        "pending_expected": 0,
+        "pending_correct": 0,
+        "pending_accuracy": null,
+        "pending_misses": []
+      },
+      "decision_accuracy_with_pending": 1.0
+    },
+    "locale_money_ok": {
+      "dataset": "locale_money_ok",
+      "kind": "matching",
+      "ingest_status": "OK",
+      "n": 4,
+      "harm": {
+        "false_match_count": 0,
+        "false_matches": [],
+        "note": "False MATCH is the dangerous error: a break was auto-cleared.",
+        "pending_cleared_as_match": []
+      },
+      "false_exception_count": 0,
+      "false_exceptions_sample": [],
+      "correct_matches": 4,
+      "correct_exceptions": 0,
+      "pending_when_match_expected": [],
+      "pending_when_exception_expected": [],
+      "review_when_match_expected": [],
+      "review_when_exception_expected": [],
+      "missing_predictions": [],
+      "decision_accuracy": 1.0,
+      "match_precision": 1.0,
+      "match_recall": 1.0,
+      "match_type_accuracy_given_both_match": 1.0,
+      "match_type_n": 4,
+      "match_type_by_expected": {
+        "EXACT": {
+          "n": 4,
+          "accuracy": 1.0
+        }
+      },
+      "exception_reason_accuracy_given_both_exception": null,
+      "exception_reason_n": 0,
+      "exception_reason_by_expected": {},
+      "confusion_expected_vs_predicted": {
+        "MATCH->MATCH": 4
+      },
+      "ground_truth": "/Users/kaustubhh/Desktop/reconagent/evaluation_datasets/adversarial/locale_money_ok/ground_truth.csv",
+      "predictions": "/Users/kaustubhh/Desktop/reconagent/evaluation_datasets/_work/adversarial/locale_money_ok/predictions.json",
+      "agent_meta": {
+        "dataset": "locale_money_ok",
+        "adapter": {
+          "source_dir": "/Users/kaustubhh/Desktop/reconagent/evaluation_datasets/adversarial/locale_money_ok",
+          "dest_dir": "/Users/kaustubhh/Desktop/reconagent/evaluation_datasets/_work/adversarial/locale_money_ok/engine",
+          "normalize_ids": true,
+          "copied_ground_truth": false,
+          "invented_batch_ids": false,
+          "ledger_rows": 4,
+          "settlement_rows": 4,
+          "bank_rows": 4,
+          "money_validation": "OK",
+          "column_map": {
+            "merchant_order_id": "order_id",
+            "customer_name": "customer",
+            "gross_amount": "amount",
+            "net_amount": "net_amount",
+            "refund_amount": "refund_amount",
+            "value_date": "credit_date",
+            "debit_amount": "debit_amount",
+            "payout_batch": "settlement_batch_id"
+          }
+        },
+        "classifier_mode": "rule_based",
+        "schema_version": 1
+      },
+      "pending_score": {
+        "pending_expected": 0,
+        "pending_correct": 0,
+        "pending_accuracy": null,
+        "pending_misses": []
+      },
+      "decision_accuracy_with_pending": 1.0
+    },
+    "malformed_money": {
+      "dataset": "malformed_money",
+      "kind": "ingest",
+      "ok": true,
+      "expected": {
+        "status": "VALIDATION_FAILED",
+        "must_quarantine_field": "amount",
+        "must_quarantine_value": "abc",
+        "block_reconcile": true
+      },
+      "actual_status": "VALIDATION_FAILED",
+      "quarantine": [
+        {
+          "file": "internal_ledger.csv",
+          "row": 4,
+          "field": "amount",
+          "value": "abc",
+          "error": "INVALID(not_numeric)"
+        }
+      ],
+      "blocked_reconcile": true,
+      "n": 0,
+      "harm": {
+        "false_match_count": 0,
+        "false_matches": []
+      },
+      "decision_accuracy": null
+    },
+    "missing_amount": {
+      "dataset": "missing_amount",
+      "kind": "ingest",
+      "ok": true,
+      "expected": {
+        "status": "VALIDATION_FAILED",
+        "must_quarantine_field": "amount",
+        "block_reconcile": true
+      },
+      "actual_status": "VALIDATION_FAILED",
+      "quarantine": [
+        {
+          "file": "internal_ledger.csv",
+          "row": 4,
+          "field": "amount",
+          "value": "",
+          "error": "MISSING"
+        }
+      ],
+      "blocked_reconcile": true,
+      "n": 0,
+      "harm": {
+        "false_match_count": 0,
+        "false_matches": []
+      },
+      "decision_accuracy": null
+    }
+  }
+}

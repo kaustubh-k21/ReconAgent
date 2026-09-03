@@ -1,0 +1,6 @@
+transaction_id,expected_decision,expected_reason,expected_ledger_amount,expected_gateway_amount,expected_settlement_amount,expected_bank_amount,expected_variance,expected_match_type,expected_confidence_band,human_review_required,adversarial_tag
+REV001,MATCH,,1250.25,1250.25,1225.25,1225.25,0.00,EXACT,high,false,ballast
+REV002,MATCH,,1500.50,1500.50,1470.49,1470.49,0.00,EXACT,high,false,ballast
+REV003,MATCH,,1750.75,1750.75,1715.73,1715.73,0.00,EXACT,high,false,ballast
+ADVREV1,EXCEPTION,refund_full,4500.00,4500.00,4410.00,,0.00,EXCEPTION,high,true,full_reversal_debit
+ADVREV2,EXCEPTION,refund_partial,3600.00,3600.00,3528.00,2728.00,0.00,EXCEPTION,high,true,partial_refund

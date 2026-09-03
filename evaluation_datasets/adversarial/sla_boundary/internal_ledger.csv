@@ -1,0 +1,7 @@
+order_id,order_date,amount,currency,customer_name,channel
+SLA001,2026-07-20,1250.25,INR,Ballast 1,UPI
+SLA002,2026-07-20,1500.5,INR,Ballast 2,UPI
+SLA003,2026-07-20,1750.75,INR,Ballast 3,UPI
+ADVPENDSLA,2026-08-03,3100.0,INR,Pending Bank,UPI
+ADVAGEDBANK,2026-07-01,2800.0,INR,Aged Missing Bank,UPI
+ADVLAGFUZZY,2026-07-20,1900.0,INR,Lag Match,UPI

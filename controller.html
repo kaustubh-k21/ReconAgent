@@ -1,0 +1,1259 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Finance Controller — Upload · Validate · Reconcile</title>
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,500;9..144,600;9..144,700&family=Source+Serif+4:ital,wght@0,400;0,500;0,600;1,400&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --paper: #FDFBF7;
+    --paper-2: #F5F1E5;
+    --rule: #DDD7C5;
+    --ink: #1F241E;
+    --ink-soft: #63665E;
+    --forest: #20402C;
+    --forest-2: #2E593E;
+    --brass: #8E6D2E;
+    --rust: #923425;
+    --rust-2: #B83F2E;
+    --exact-bg: #E1EADF;
+    --fuzzy-bg: #F2ECDC;
+    --exception-bg: #F4E4DC;
+    --ease: cubic-bezier(0.32, 0.72, 0, 1);
+  }
+  *{box-sizing:border-box;}
+  html{scroll-behavior:smooth;}
+  html,body{margin:0;padding:0;background:var(--paper);color:var(--ink);}
+  body{
+    font-family:"Source Serif 4", Georgia, serif;
+    font-size:16px;
+    line-height:1.5;
+    background-image:
+      repeating-linear-gradient(180deg, transparent, transparent 37px, var(--rule) 37px, var(--rule) 38px);
+  }
+  .noise-overlay{
+    position:fixed;inset:0;pointer-events:none;opacity:0.025;z-index:9999;
+    background-image:url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.8' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)'/%3E%3C/svg%3E");
+  }
+  .wrap{max-width:980px;margin:0 auto;padding:56px 32px 96px;}
+
+  header.masthead{
+    display:flex;justify-content:space-between;align-items:flex-end;
+    border-bottom:3px double var(--ink);
+    padding-bottom:18px;margin-bottom:8px;
+  }
+  .masthead h1{
+    font-family:"Fraunces", serif;
+    font-weight:600;
+    font-size:2.6rem;
+    letter-spacing:-0.02em;
+    margin:0;
+    line-height:1.05;
+  }
+  .masthead .sub{
+    font-family:"IBM Plex Mono", monospace;
+    font-size:0.72rem;
+    letter-spacing:0.12em;
+    text-transform:uppercase;
+    color:var(--ink-soft);
+    margin-top:8px;
+  }
+  .masthead .folio{
+    font-family:"IBM Plex Mono", monospace;
+    font-size:0.78rem;
+    text-align:right;
+    color:var(--ink-soft);
+    line-height:1.6;
+  }
+  .masthead .folio b{color:var(--ink);font-weight:600;}
+
+  .tally{
+    display:grid;
+    grid-template-columns:repeat(4,1fr);
+    gap:1px;
+    background:var(--ink);
+    margin:28px 0 40px;
+    border:1px solid var(--ink);
+    box-shadow:0 4px 20px rgba(31,36,30,0.06);
+  }
+  .tally .cell{
+    background:var(--paper-2);
+    padding:20px 14px;
+    text-align:center;
+    transition:background-color 0.3s var(--ease), transform 0.3s var(--ease);
+  }
+  .tally .cell:hover{background:var(--paper);transform:translateY(-2px);}
+  #rail button.cell{
+    border:0;
+    color:inherit;
+    font:inherit;
+    width:100%;
+    appearance:none;
+    -webkit-appearance:none;
+  }
+  #rail button.cell:not(:disabled){cursor:pointer;}
+  #rail button.cell:not(:disabled):focus-visible{outline:3px solid var(--brass);outline-offset:-3px;}
+  #rail button.cell:not(:disabled):active{transform:translateY(1px);}
+  #rail button.cell:disabled{cursor:default;}
+  .tally .cell .num{
+    font-family:"IBM Plex Mono", monospace;
+    font-weight:600;
+    font-size:1.8rem;
+    font-variant-numeric:tabular-nums;
+  }
+  .tally .cell .label{
+    font-family:"IBM Plex Mono", monospace;
+    font-size:0.64rem;
+    letter-spacing:0.08em;
+    text-transform:uppercase;
+    color:var(--ink-soft);
+    margin-top:6px;
+  }
+  .tally .cell.accent .num{color:var(--forest-2);}
+  .tally .cell.warn .num{color:var(--rust-2);}
+  .tally .cell.active{background:var(--exact-bg);}
+  .tally .cell.fail{background:var(--exception-bg);}
+  .tally .cell.locked{background:#F3F1EA;opacity:0.72;}
+  .tally .cell.locked:hover{transform:none;background:#F3F1EA;cursor:default;}
+  .tally .cell .mark{
+    font-family:"IBM Plex Mono", monospace;
+    font-size:0.62rem;
+    letter-spacing:0.1em;
+    text-transform:uppercase;
+    color:var(--ink-soft);
+    margin-top:8px;
+  }
+  .tally .cell.accent .mark{color:var(--forest-2);}
+  .tally .cell.fail .mark{color:var(--rust-2);}
+  .tally .cell.active .mark{color:var(--brass);}
+
+  h2.section{
+    font-family:"Fraunces", serif;
+    font-weight:600;
+    font-size:1.45rem;
+    margin:48px 0 6px;
+    display:flex;align-items:baseline;gap:12px;
+  }
+  h2.section .idx{
+    font-family:"IBM Plex Mono", monospace;
+    font-size:0.78rem;
+    color:var(--brass);
+    letter-spacing:0.06em;
+  }
+  p.deck{color:var(--ink-soft);margin:0 0 24px;font-size:0.95rem;max-width:70ch;}
+
+  .warning-banner{
+    background-color:#FDF6E2;
+    border:1px solid #E6B046;
+    color:#8E6D2E;
+    padding:10px 14px;
+    border-radius:4px;
+    font-family:"IBM Plex Mono", monospace;
+    font-size:0.75rem;
+    margin-bottom:20px;
+  }
+  .fail-banner{
+    background:#FDF1EF;
+    border:1px solid var(--rust-2);
+    color:var(--rust);
+    padding:10px 14px;
+    border-radius:4px;
+    font-family:"IBM Plex Mono", monospace;
+    font-size:0.75rem;
+    margin:16px 0;
+  }
+  .ok-banner{
+    background:var(--exact-bg);
+    border:1px solid var(--forest-2);
+    color:var(--forest);
+    padding:10px 14px;
+    border-radius:4px;
+    font-family:"IBM Plex Mono", monospace;
+    font-size:0.75rem;
+    margin:16px 0;
+  }
+
+  .upload-grid{
+    display:grid;
+    grid-template-columns:repeat(3,1fr);
+    gap:14px;
+  }
+  .drop{
+    background:var(--paper-2);
+    border:1px solid var(--rule);
+    border-radius:6px;
+    min-height:180px;
+    padding:16px;
+    cursor:pointer;
+    position:relative;
+    transition:background 0.3s var(--ease), border-color 0.3s var(--ease), transform 0.25s var(--ease);
+  }
+  .drop:hover,.drop.drag{
+    background:var(--paper);
+    border-color:var(--ink);
+    transform:translateY(-2px);
+  }
+  .drop.has-file{
+    background:var(--exact-bg);
+    border-color:var(--forest-2);
+  }
+  .drop input{position:absolute;inset:0;opacity:0;cursor:pointer;}
+  .drop .role{
+    font-family:"IBM Plex Mono", monospace;
+    font-size:0.66rem;
+    letter-spacing:0.12em;
+    text-transform:uppercase;
+    color:var(--ink-soft);
+  }
+  .drop .title{
+    font-family:"Fraunces", serif;
+    font-size:1.25rem;
+    margin-top:6px;
+  }
+  .drop .hint{color:var(--ink-soft);font-size:0.9rem;margin-top:8px;}
+  .drop .meta{
+    font-family:"IBM Plex Mono", monospace;
+    font-size:0.68rem;
+    margin-top:14px;
+    line-height:1.65;
+    word-break:break-all;
+    color:var(--ink-soft);
+  }
+  .drop .detect{
+    margin-top:10px;
+    font-family:"IBM Plex Mono", monospace;
+    font-size:0.62rem;
+    letter-spacing:0.08em;
+    text-transform:uppercase;
+    color:var(--forest-2);
+  }
+
+  .actions{display:flex;flex-wrap:wrap;gap:10px;align-items:center;margin-top:18px;}
+  button.btn,a.btn{
+    font-family:"IBM Plex Mono", monospace;
+    font-size:0.7rem;
+    letter-spacing:0.08em;
+    text-transform:uppercase;
+    border:1px solid var(--ink);
+    background:var(--ink);
+    color:var(--paper);
+    padding:11px 16px;
+    cursor:pointer;
+    text-decoration:none;
+    display:inline-block;
+    transition:transform 0.2s var(--ease), background 0.2s var(--ease);
+  }
+  button.btn:hover:not(:disabled),a.btn:hover{transform:translateY(-1px);}
+  button.btn:active:not(:disabled){transform:scale(0.98);}
+  button.btn:disabled{opacity:0.35;cursor:not-allowed;transform:none;}
+  button.btn.ghost,a.btn.ghost{background:transparent;color:var(--ink);}
+  button.btn.primary{background:var(--forest);border-color:var(--forest);}
+
+  .stamp{
+    display:inline-block;
+    white-space:nowrap;
+    font-family:"IBM Plex Mono", monospace;
+    font-size:0.62rem;
+    letter-spacing:0.09em;
+    text-transform:uppercase;
+    padding:3px 8px;
+    border:1.5px solid currentColor;
+    border-radius:3px;
+    transform:rotate(-1deg);
+    font-weight:500;
+  }
+  .stamp.ok{color:var(--forest-2);background:var(--exact-bg);}
+  .stamp.fail{color:var(--rust-2);background:#FDF1EF;}
+  .stamp.warn{color:var(--brass);background:#FAF5EA;}
+  .stamp.idle{color:var(--ink-soft);background:#F3F3F1;}
+
+  .card-bezel-outer{
+    background:var(--paper-2);
+    border:1px solid var(--rule);
+    border-radius:8px;
+    padding:3px;
+    box-shadow:0 4px 18px rgba(0,0,0,0.03);
+    margin-top:18px;
+  }
+  .card-bezel-inner{
+    background:var(--paper);
+    border:1px solid var(--rule);
+    border-radius:6px;
+    overflow-x:auto;
+  }
+  table.ledger{width:100%;border-collapse:collapse;font-size:0.88rem;min-width:640px;}
+  table.ledger thead th{
+    text-align:left;font-family:"IBM Plex Mono", monospace;font-size:0.66rem;
+    letter-spacing:0.08em;text-transform:uppercase;color:var(--ink-soft);
+    border-bottom:2px solid var(--ink);padding:14px 12px;background:var(--paper-2);
+  }
+  table.ledger td{padding:12px 12px;border-bottom:1px solid var(--rule);vertical-align:middle;}
+  table.ledger tr:last-child td{border-bottom:none;}
+  table.ledger tbody tr{transition:background-color 0.2s var(--ease);}
+  table.ledger tbody tr:hover{background-color:var(--paper-2);}
+  table.ledger tr.bad{background:var(--exception-bg);}
+  table.ledger tr.miss{background:var(--fuzzy-bg);}
+  .mono{font-family:"IBM Plex Mono", monospace;font-variant-numeric:tabular-nums;}
+  .num-cell{font-family:"IBM Plex Mono", monospace;font-variant-numeric:tabular-nums;text-align:right;}
+  .evidence{
+    color:var(--ink);font-size:0.92rem;max-width:48ch;line-height:1.5;
+  }
+  .evidence summary{
+    color:var(--ink);cursor:pointer;font-family:"Source Serif 4", Georgia, serif;
+    font-size:0.9rem;letter-spacing:0;list-style-position:outside;font-weight:500;
+  }
+  .evidence summary:hover{text-decoration:underline;color:var(--forest);}
+  .evidence summary:focus-visible{outline:2px solid var(--brass);outline-offset:3px;}
+  .evidence ul{margin:8px 0 0;padding-left:1.1em;}
+  .evidence li{margin:0 0 4px;}
+  .evidence .action{
+    margin:10px 0 0;color:var(--forest);
+    font-family:"IBM Plex Mono",monospace;font-size:0.72rem;letter-spacing:0.02em;
+  }
+  .confidence-uncertain{
+    color:var(--brass);font-family:"IBM Plex Mono",monospace;font-size:0.72rem;
+    letter-spacing:0.04em;text-transform:uppercase;white-space:nowrap;
+  }
+  .confidence-muted{color:var(--ink-soft);}
+  h3.nested{
+    font-family:"Fraunces", serif;
+    font-weight:600;
+    font-size:1.1rem;
+    margin:28px 0 6px;
+  }
+
+  .meta-row{display:grid;grid-template-columns:1fr 1fr 1fr;gap:16px;margin-top:18px;}
+  .meta-box{
+    background:var(--paper-2);border:1px solid var(--rule);border-radius:6px;
+    padding:14px 16px;font-family:"IBM Plex Mono",monospace;font-size:0.72rem;
+    color:var(--ink-soft);line-height:1.7;
+  }
+  .meta-box b{color:var(--ink);}
+  .meta-box h3{
+    font-family:"IBM Plex Mono", monospace;
+    font-size:0.66rem;
+    letter-spacing:0.1em;
+    text-transform:uppercase;
+    color:var(--ink);
+    margin:0 0 10px;
+  }
+
+  .bar-track{
+    display:flex;height:34px;border:1px solid var(--ink);overflow:hidden;
+    font-family:"IBM Plex Mono", monospace;font-size:0.75rem;
+    box-shadow:inset 0 2px 4px rgba(0,0,0,0.05);
+    margin-top:12px;
+  }
+  .bar-seg{display:flex;align-items:center;justify-content:center;color:var(--ink);white-space:nowrap;overflow:hidden;font-weight:600;}
+  .bar-seg.exact{background:var(--exact-bg);}
+  .bar-seg.fuzzy{background:var(--fuzzy-bg);}
+  .bar-seg.review{background:#E8E4F0;}
+  .bar-seg.pending{background:#E4EEF4;}
+  .bar-seg.exception{background:var(--exception-bg);}
+  .bar-legend{display:flex;flex-wrap:wrap;gap:22px;margin-top:12px;font-family:"IBM Plex Mono", monospace;font-size:0.7rem;color:var(--ink-soft);}
+  .bar-legend .swatch{display:inline-block;width:10px;height:10px;margin-right:6px;vertical-align:-1px;border:1px solid var(--ink);}
+
+  .results-tally{
+    display:grid;
+    grid-template-columns:repeat(6,1fr);
+    gap:1px;
+    background:var(--ink);
+    margin:20px 0;
+    border:1px solid var(--ink);
+  }
+  .results-tally .cell{background:var(--paper-2);padding:18px 10px;text-align:center;}
+  .results-tally .num{font-family:"IBM Plex Mono", monospace;font-weight:600;font-size:1.5rem;}
+  .results-tally .label{font-family:"IBM Plex Mono", monospace;font-size:0.6rem;letter-spacing:0.08em;text-transform:uppercase;color:var(--ink-soft);margin-top:6px;}
+  .results-tally .accent .num{color:var(--forest-2);}
+  .results-tally .warn .num{color:var(--rust-2);}
+
+  .map-line{
+    font-family:"IBM Plex Mono", monospace;
+    font-size:0.72rem;
+    line-height:1.55;
+    color:var(--ink);
+    margin:0 0 8px;
+    white-space:pre-wrap;
+  }
+  .map-warn{
+    color:var(--rust);
+    padding-left:1.2em;
+    margin:-4px 0 10px;
+  }
+  .recon-summary{
+    background:var(--paper-2);
+    border:1px solid var(--ink);
+    padding:22px 24px;
+    margin:18px 0 8px;
+  }
+  .recon-summary h3{
+    font-family:"IBM Plex Mono", monospace;
+    font-size:0.7rem;
+    letter-spacing:0.14em;
+    text-transform:uppercase;
+    margin:0 0 14px;
+  }
+  .recon-summary .stat{
+    font-family:"Source Serif 4", Georgia, serif;
+    font-size:1.05rem;
+    margin:4px 0;
+  }
+  .recon-summary .stat b{font-family:"IBM Plex Mono", monospace;}
+  .recon-summary .money{
+    font-family:"IBM Plex Mono", monospace;
+    margin-top:12px;
+    line-height:1.7;
+  }
+  .recon-summary .guard{
+    margin-top:14px;
+    padding-top:12px;
+    border-top:1px solid var(--rule);
+    font-family:"IBM Plex Mono", monospace;
+    font-size:0.72rem;
+    letter-spacing:0.06em;
+    color:var(--forest);
+  }
+  .recon-summary .guard span{
+    display:block;
+    color:var(--ink-soft);
+    letter-spacing:0;
+    margin-top:6px;
+    text-transform:none;
+  }
+  .queue-tabs{
+    display:flex;flex-wrap:wrap;gap:0;margin:8px 0 0;
+    border-bottom:2px solid var(--ink);
+  }
+  .queue-tabs button{
+    font-family:"IBM Plex Mono", monospace;
+    font-size:0.68rem;
+    letter-spacing:0.08em;
+    text-transform:uppercase;
+    border:0;
+    border-bottom:3px solid transparent;
+    background:transparent;
+    color:var(--ink-soft);
+    padding:10px 14px 8px;
+    cursor:pointer;
+    margin-bottom:-2px;
+  }
+  .queue-tabs button:hover{color:var(--ink);}
+  .queue-tabs button[aria-selected="true"]{
+    color:var(--ink);
+    border-bottom-color:var(--forest);
+    font-weight:600;
+  }
+  .queue-tabs button:focus-visible{outline:2px solid var(--brass);outline-offset:2px;}
+  .queue-tabs .count{font-variant-numeric:tabular-nums;margin-left:6px;color:var(--ink-soft);}
+  .queue-tabs button[aria-selected="true"] .count{color:var(--forest);}
+  .queue-note{color:var(--ink-soft);font-size:0.88rem;margin:12px 0 10px;max-width:70ch;}
+  .queue-empty{
+    padding:28px 16px;text-align:center;color:var(--ink-soft);
+    font-family:"IBM Plex Mono",monospace;font-size:0.75rem;
+  }
+  .results-tally .cell[data-tab]{cursor:pointer;}
+  .results-tally .cell[data-tab]:hover{background:var(--paper);}
+
+  .hidden{display:none !important;}
+  footer{
+    margin-top:80px;padding-top:18px;border-top:1px solid var(--rule);
+    font-family:"IBM Plex Mono", monospace;font-size:0.68rem;color:var(--ink-soft);
+    display:flex;justify-content:space-between;gap:12px;flex-wrap:wrap;
+  }
+
+  @media (max-width:800px){
+    .wrap{padding:36px 18px 72px;}
+    .masthead{flex-direction:column;align-items:flex-start;gap:12px;}
+    .masthead .folio{text-align:left;}
+    .masthead h1{font-size:2.1rem;}
+    .tally,.results-tally,.upload-grid,.meta-row{grid-template-columns:1fr 1fr;}
+  }
+  @media (max-width:520px){
+    .tally,.results-tally,.upload-grid,.meta-row{grid-template-columns:1fr;}
+  }
+</style>
+</head>
+<body>
+<div class="noise-overlay" aria-hidden="true"></div>
+<div class="wrap">
+  <header class="masthead">
+    <div>
+      <h1>Finance Controller</h1>
+      <div class="sub">Control setup → Data validation → Reconciliation → Exception review</div>
+    </div>
+    <div class="folio">
+      Batch <b id="batchId">—</b><br>
+      State <span class="stamp idle" id="batchStatus">EMPTY</span><br>
+      <span id="clock"></span>
+    </div>
+  </header>
+
+  <nav class="tally" id="rail" aria-label="Financial control workflow">
+    <button class="cell active" type="button" data-target="section-control">
+      <div class="num">01</div>
+      <div class="label">Control setup</div>
+      <div class="mark">SETUP</div>
+    </button>
+    <button class="cell locked" type="button" data-target="section-validation" disabled>
+      <div class="num">02</div>
+      <div class="label">Data validation</div>
+      <div class="mark">LOCKED</div>
+    </button>
+    <button class="cell locked" type="button" data-target="section-reconcile" disabled>
+      <div class="num">03</div>
+      <div class="label">Reconciliation</div>
+      <div class="mark">LOCKED</div>
+    </button>
+    <button class="cell locked" type="button" data-target="exceptionsPanel" disabled>
+      <div class="num">04</div>
+      <div class="label">Exception review</div>
+      <div class="mark">LOCKED</div>
+    </button>
+  </nav>
+
+  <h2 class="section" id="section-control"><span class="idx">01</span> Control setup</h2>
+  <p class="deck">Drop the three source files for this settlement cycle. Originals are retained with checksums. Detection is advisory; the controller-assigned role wins.</p>
+  <div class="warning-banner" id="uploadMsg">Awaiting ledger, gateway, and bank CSVs.</div>
+  <div class="upload-grid">
+    <label class="drop" id="drop-ledger">
+      <input type="file" accept=".csv,text/csv" data-role="ledger">
+      <div class="role">Source A</div>
+      <div class="title">Ledger</div>
+      <div class="hint">Internal orders / invoices</div>
+      <div class="meta" id="meta-ledger">No file</div>
+      <div class="detect" id="detect-ledger"></div>
+    </label>
+    <label class="drop" id="drop-gateway">
+      <input type="file" accept=".csv,text/csv" data-role="gateway">
+      <div class="role">Source B</div>
+      <div class="title">Gateway</div>
+      <div class="hint">Settlement / payout report</div>
+      <div class="meta" id="meta-gateway">No file</div>
+      <div class="detect" id="detect-gateway"></div>
+    </label>
+    <label class="drop" id="drop-bank">
+      <input type="file" accept=".csv,text/csv" data-role="bank">
+      <div class="role">Source C</div>
+      <div class="title">Bank</div>
+      <div class="hint">Statement credits / debits</div>
+      <div class="meta" id="meta-bank">No file</div>
+      <div class="detect" id="detect-bank"></div>
+    </label>
+  </div>
+  <div class="actions">
+    <button class="btn ghost" type="button" id="btnNew">New Batch</button>
+    <button class="btn ghost" type="button" id="btnDemo">Demo Paths</button>
+  </div>
+
+  <h2 class="section" id="section-validation"><span class="idx">02</span> Data validation</h2>
+  <p class="deck">Strict monetary parsing runs before canonicalization. Mapping is confirmed here. Critical invalid amounts quarantine the row and fail the batch — never coerce to zero.</p>
+  <div class="actions" style="margin-top:0">
+    <button class="btn" type="button" id="btnValidate" disabled>Run Detection + Validation</button>
+  </div>
+  <div id="validateMsg" class="hidden"></div>
+  <div id="quarantineWrap" class="hidden">
+    <div class="card-bezel-outer">
+      <div class="card-bezel-inner">
+        <table class="ledger" id="quarantineTable">
+          <thead>
+            <tr>
+              <th>File</th>
+              <th>Row</th>
+              <th>Field</th>
+              <th>Value</th>
+              <th>Error</th>
+            </tr>
+          </thead>
+          <tbody></tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
+  <div id="mappingDiagnostic" class="hidden"></div>
+
+  <div id="section-mapping" class="hidden">
+  <h3 class="nested">Mapping preview</h3>
+  <p class="deck">Confirmed source → engine mapping after validation. Monetary samples shown in canonical rupees.</p>
+  <div class="meta-row" id="mappingCols"></div>
+  </div>
+
+  <div id="section-reconcile" class="hidden">
+  <h2 class="section" id="section-recon-heading"><span class="idx">03</span> Reconciliation</h2>
+  <p class="deck">Enabled only when validation passes. Uses the frozen matcher and rule-based classifier — no silent demo regeneration.</p>
+  <div class="actions" style="margin-top:0">
+    <button class="btn primary" type="button" id="btnReconcile" disabled>Run Reconciliation</button>
+  </div>
+  <div id="reconcileMsg" class="hidden"></div>
+  <div id="resultsWrap" class="hidden">
+    <div class="recon-summary" id="reconSummary"></div>
+    <div class="results-tally" id="resultsTally"></div>
+    <div class="bar-track" id="resultsBar"></div>
+    <div class="bar-legend" id="resultsLegend"></div>
+    <h2 class="section" id="exceptionsPanel" tabindex="-1"><span class="idx">04</span> Exception review</h2>
+    <p class="deck" id="queueDeck">Default queue is the exception list. Reconciled and pending rows stay on secondary tabs so a cleared match can still be audited.</p>
+    <div class="queue-tabs" id="queueTabs" role="tablist" aria-label="Reconciliation queues">
+      <button type="button" role="tab" id="tab-review" aria-selected="true" data-tab="review">Needs review<span class="count" id="count-review">0</span></button>
+      <button type="button" role="tab" id="tab-reconciled" aria-selected="false" data-tab="reconciled">Reconciled<span class="count" id="count-reconciled">0</span></button>
+      <button type="button" role="tab" id="tab-pending" aria-selected="false" data-tab="pending">Pending<span class="count" id="count-pending">0</span></button>
+      <button type="button" role="tab" id="tab-all" aria-selected="false" data-tab="all">All<span class="count" id="count-all">0</span></button>
+    </div>
+    <p class="queue-note" id="queueNote"></p>
+    <div class="card-bezel-outer">
+      <div class="card-bezel-inner">
+        <table class="ledger" id="excTable">
+          <thead></thead>
+          <tbody></tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+  </div>
+
+  <footer>
+    <span>reconagent — finance controller</span>
+    <span id="footerStamp">ingestion boundary</span>
+  </footer>
+</div>
+
+<script>
+const ROLES = ["ledger", "gateway", "bank"];
+const AUTO_CONFIRM = 0.9; // matching_policy.json → confidence.auto
+const UNCERTAIN_CAUSES = new Set([
+  "unexplained", "unexplained_variance", "ambiguous_match", "wrong_transaction",
+]);
+let batch = null;
+let lastResults = null;
+let queueTab = "review";
+const QUEUE_CAP = 80;
+const $ = (id) => document.getElementById(id);
+
+function formatInr(n) {
+  return "₹" + Number(n || 0).toLocaleString("en-IN", {
+    minimumFractionDigits: 2, maximumFractionDigits: 2,
+  });
+}
+
+function escapeHtml(s) {
+  return String(s).replace(/[&<>"']/g, (c) => ({
+    "&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"
+  })[c]);
+}
+
+function setBanner(el, text, kind) {
+  if (!text) { el.className = "hidden"; el.textContent = ""; return; }
+  el.className = kind === "fail" ? "fail-banner" : kind === "ok" ? "ok-banner" : "warning-banner";
+  el.textContent = text;
+}
+
+function updateClock() {
+  $("clock").textContent = new Date().toLocaleString();
+  $("footerStamp").textContent = "generated " + new Date().toISOString().slice(0,16).replace("T"," ");
+}
+setInterval(updateClock, 1000);
+updateClock();
+
+function stampClass(status) {
+  if (status === "READY" || status === "COMPLETED") return "ok";
+  if (status === "VALIDATION_FAILED") return "fail";
+  if (status === "VALIDATING" || status === "RECONCILING" || status === "FILES_UPLOADED") return "warn";
+  return "idle";
+}
+
+function railCounts(state) {
+  const s = state?.results_summary || {};
+  const c = s.controller || {};
+  const files = ROLES.filter((r) => state?.files?.[r]).length;
+  return {
+    files,
+    quarantine: state?.validation?.quarantine?.length || 0,
+    processed: c.processed ?? s.total_transactions ?? 0,
+    exceptions: c.exceptions ?? s.exceptions ?? 0,
+    review: c.require_review ?? ((s.review_matches || 0) + (s.exceptions || 0)),
+  };
+}
+
+function updateRail(status, counts = {}) {
+  const files = counts.files ?? 0;
+  const q = counts.quarantine ?? 0;
+  const processed = counts.processed ?? 0;
+  const nExc = counts.exceptions ?? 0;
+  const specs = {
+    EMPTY:            [["active","SETUP"], ["locked","LOCKED"], ["locked","LOCKED"], ["locked","LOCKED"]],
+    UPLOADING:        [["active", `${files}/3 FILES`], ["locked","LOCKED"], ["locked","LOCKED"], ["locked","LOCKED"]],
+    FILES_UPLOADED:   [["accent","3/3 FILES"], ["active","READY"], ["locked","LOCKED"], ["locked","LOCKED"]],
+    VALIDATING:       [["accent","3/3 FILES"], ["active","CHECKING"], ["locked","LOCKED"], ["locked","LOCKED"]],
+    VALIDATION_FAILED:[["accent","3/3 FILES"], ["fail", q ? `${q} BLOCKED` : "ACTION NEEDED"], ["locked","LOCKED"], ["locked","LOCKED"]],
+    READY:            [["accent","3/3 FILES"], ["accent","OK"], ["active","READY"], ["locked","LOCKED"]],
+    RECONCILING:      [["accent","3/3 FILES"], ["accent","OK"], ["active","RUNNING"], ["locked","LOCKED"]],
+    COMPLETED: nExc
+      ? [["accent","3/3 FILES"], ["accent","OK"], ["accent", `${processed} DONE`], ["active", `${nExc} OPEN`]]
+      : [["accent","3/3 FILES"], ["accent","OK"], ["accent", `${processed} DONE`], ["accent","CLEAR"]],
+  };
+  const row = specs[status] || specs.EMPTY;
+  document.querySelectorAll("#rail .cell").forEach((el, i) => {
+    el.classList.remove("active", "accent", "fail", "locked");
+    el.classList.add(row[i][0]);
+    el.disabled = row[i][0] === "locked";
+    el.setAttribute("aria-current", row[i][0] === "active" ? "step" : "false");
+    const mark = el.querySelector(".mark");
+    if (mark) mark.textContent = row[i][1];
+  });
+}
+
+function mappingIssues(state) {
+  const out = [];
+  ROLES.forEach((role) => {
+    const fields = state.mapping?.[role]?.fields || [];
+    fields.forEach((f) => {
+      if (f.warning || f.status === "missing" || f.status === "invalid" || f.status === "critical_missing") {
+        if (f.status === "optional_missing") return;
+        out.push({ role, ...f });
+      }
+    });
+  });
+  return out;
+}
+
+function renderBatch(state) {
+  batch = state;
+  $("batchId").textContent = state.batch_id || "—";
+  const chip = $("batchStatus");
+  chip.textContent = state.status;
+  chip.className = "stamp " + stampClass(state.status);
+  updateRail(state.status, railCounts(state));
+
+  ROLES.forEach((role) => {
+    const f = state.files?.[role];
+    const drop = $("drop-" + role);
+    const meta = $("meta-" + role);
+    const det = $("detect-" + role);
+    if (!f) {
+      drop.classList.remove("has-file");
+      meta.textContent = "No file";
+      det.textContent = "";
+      return;
+    }
+    drop.classList.add("has-file");
+    meta.innerHTML = `${escapeHtml(f.original_name)}<br>${f.rows} rows · ${f.bytes} B<br>sha256 ${f.sha256.slice(0,12)}…`;
+    const d = f.detection || {};
+    det.textContent = d.detected_role ? `Detected role: ${d.detected_role}` : "";
+  });
+
+  const readyUpload = ROLES.every((r) => state.files?.[r]);
+  $("btnValidate").disabled = !readyUpload || state.status === "VALIDATING";
+  renderValidation(state);
+
+  const showMapping = state.status === "READY" || state.status === "COMPLETED";
+  $("section-mapping").classList.toggle("hidden", !showMapping);
+  if (showMapping) renderMapping(state, $("mappingCols"));
+
+  const issues = mappingIssues(state);
+  const diag = $("mappingDiagnostic");
+  if (state.status === "VALIDATION_FAILED" && issues.length) {
+    diag.classList.remove("hidden");
+    diag.innerHTML = `<p class="deck" style="margin:16px 0 8px">Mapping could not be confirmed. Later steps stay locked until this is fixed.</p>`;
+    const host = document.createElement("div");
+    host.className = "meta-row";
+    diag.appendChild(host);
+    renderMapping(state, host);
+  } else {
+    diag.classList.add("hidden");
+    diag.innerHTML = "";
+  }
+
+  const showRecon = state.status === "READY" || state.status === "RECONCILING" || state.status === "COMPLETED";
+  $("section-reconcile").classList.toggle("hidden", !showRecon);
+  $("btnReconcile").disabled = state.status !== "READY";
+  if (state.status === "COMPLETED" && state.results_summary) {
+    renderResultsSummary(state.results_summary);
+    loadFullResults(state.batch_id);
+  } else if (state.status !== "COMPLETED") {
+    $("resultsWrap").classList.add("hidden");
+    lastResults = null;
+    queueTab = "review";
+  }
+}
+
+function renderMapping(state, host) {
+  if (!host) return;
+  host.innerHTML = "";
+  ROLES.forEach((role) => {
+    const map = state.mapping?.[role];
+    const box = document.createElement("div");
+    box.className = "meta-box";
+    box.innerHTML = `<h3>${role}</h3>`;
+    if (!map) {
+      box.innerHTML += `<div class="map-line">Awaiting upload</div>`;
+      host.appendChild(box);
+      return;
+    }
+    (map.fields || []).forEach((f) => {
+      const src = f.source || "—";
+      const display = f.sample_display || f.sample_canonical || f.sample_raw || "";
+      const line = document.createElement("div");
+      line.className = "map-line";
+      if (f.warning) {
+        line.innerHTML = `${escapeHtml(src)} → ${escapeHtml(f.canonical)}`;
+        box.appendChild(line);
+        const warn = document.createElement("div");
+        warn.className = "map-line map-warn";
+        warn.textContent = "⚠ " + f.warning;
+        box.appendChild(warn);
+      } else {
+        line.textContent = display
+          ? `${src} → ${f.canonical} · ${display}`
+          : `${src} → ${f.canonical}`;
+        box.appendChild(line);
+      }
+    });
+    host.appendChild(box);
+  });
+}
+
+function renderValidation(state) {
+  const v = state.validation;
+  const qwrap = $("quarantineWrap");
+  const tbody = $("quarantineTable").querySelector("tbody");
+  tbody.innerHTML = "";
+  if (!v) {
+    setBanner($("validateMsg"), "", null);
+    qwrap.classList.add("hidden");
+    return;
+  }
+  if (v.status === "OK") {
+    setBanner($("validateMsg"),
+      `VALIDATION OK · schema=${v.schema} · ledger ${v.row_counts.ledger} / gateway ${v.row_counts.gateway} / bank ${v.row_counts.bank}`,
+      "ok");
+  } else {
+    setBanner($("validateMsg"),
+      `VALIDATION_FAILED · ${v.quarantine?.length || 0} quarantined cell(s). Reconciliation blocked.`,
+      "fail");
+  }
+  if (v.quarantine?.length) {
+    qwrap.classList.remove("hidden");
+    v.quarantine.forEach((q) => {
+      const tr = document.createElement("tr");
+      tr.className = "bad";
+      tr.innerHTML = `<td class="mono">${escapeHtml(q.file)}</td><td class="num-cell">${q.row}</td><td class="mono">${escapeHtml(q.field)}</td><td class="mono">${escapeHtml(q.value)}</td><td><span class="stamp fail">${escapeHtml(q.error)}</span></td>`;
+      tbody.appendChild(tr);
+    });
+  } else qwrap.classList.add("hidden");
+}
+
+function renderResultsSummary(summary) {
+  $("resultsWrap").classList.remove("hidden");
+  const c = summary.controller || {};
+  const processed = c.processed ?? summary.total_transactions ?? 0;
+  const safely = c.safely_reconciled ?? ((summary.exact_matches || 0) + (summary.fuzzy_matches || 0));
+  const review = c.require_review ?? ((summary.review_matches || 0) + (summary.exceptions || 0));
+  const pending = c.pending_bank ?? summary.pending_bank ?? 0;
+  const recDisp = c.reconciled_value_display || "₹0.00";
+  const excDisp = c.exception_value_display || "₹0.00";
+  const notes = (c.guardrails && c.guardrails.notes) || [];
+  $("reconSummary").innerHTML = `
+    <h3>Reconciliation summary</h3>
+    <div class="stat"><b>${processed}</b> transactions processed</div>
+    <div class="stat"><b>${safely}</b> safely reconciled</div>
+    <div class="stat"><b>${review}</b> require review</div>
+    ${pending ? `<div class="stat"><b>${pending}</b> pending bank (not yet due for review)</div>` : ""}
+    <div class="money">${escapeHtml(recDisp)} total reconciled<br>${escapeHtml(excDisp)} total exceptions</div>
+    <div class="guard">AUTO-MATCH GUARDRAILS: ACTIVE<span>${notes.join(" · ") || "Threshold policy v1 · Invalid data blocked · Review tier enabled"}</span></div>
+  `;
+  const cells = [
+    ["Exact", summary.exact_matches, "accent", "reconciled"],
+    ["Tolerance", summary.fuzzy_matches, "accent", "reconciled"],
+    ["Review", summary.review_matches, "", "reconciled"],
+    ["Pending", summary.pending_bank, "", "pending"],
+    ["Exceptions", summary.exceptions, "warn", "review"],
+    ["Auto-match", ((summary.auto_match_rate || 0) * 100).toFixed(1) + "%", "accent", ""],
+  ];
+  $("resultsTally").innerHTML = cells.map(([l,v,cls,tab]) =>
+    `<div class="cell ${cls}"${tab ? ` data-tab="${tab}" role="button" tabindex="0"` : ""}><div class="num">${v ?? 0}</div><div class="label">${l}</div></div>`
+  ).join("");
+  $("resultsTally").querySelectorAll("[data-tab]").forEach((el) => {
+    const go = () => setQueueTab(el.dataset.tab);
+    el.addEventListener("click", go);
+    el.addEventListener("keydown", (e) => {
+      if (e.key === "Enter" || e.key === " ") { e.preventDefault(); go(); }
+    });
+  });
+
+  const segs = [
+    ["exact", summary.exact_matches, "Exact"],
+    ["fuzzy", summary.fuzzy_matches, "Tolerance"],
+    ["review", summary.review_matches, "Review"],
+    ["pending", summary.pending_bank, "Pending"],
+    ["exception", summary.exceptions, "Exception"],
+  ];
+  $("resultsBar").innerHTML = segs.filter(s => s[1] > 0).map(([cls,n]) =>
+    `<div class="bar-seg ${cls}" style="flex:${n}">${n}</div>`
+  ).join("") || `<div class="bar-seg exact" style="flex:1">0</div>`;
+  $("resultsLegend").innerHTML = segs.map(([cls,_,label]) =>
+    `<span><i class="swatch" style="background:var(--${cls === "exact" ? "exact-bg" : cls === "fuzzy" ? "fuzzy-bg" : cls === "exception" ? "exception-bg" : cls === "pending" ? "exact-bg" : "fuzzy-bg"})"></i>${label}</span>`
+  ).join("");
+
+  setBanner($("reconcileMsg"),
+    `COMPLETED · ${summary.total_transactions} txns · mode ${summary.classifier_mode}`,
+    "ok");
+}
+
+function showClassificationConfidence(ex) {
+  const score = Number(ex.confidence);
+  if (!Number.isFinite(score) || score <= 0) return false;
+  if (UNCERTAIN_CAUSES.has(ex.cause)) return true;
+  return score < AUTO_CONFIRM;
+}
+
+const CAUSE_LABEL = {
+  wrong_transaction: "Possible reference mismatch",
+  ambiguous_match: "Ambiguous candidates",
+  aged_missing_bank: "Missing bank credit (past SLA)",
+  missing_settlement: "Missing settlement",
+  refund_partial: "Partial refund",
+  refund_full: "Full refund",
+  duplicate_credit: "Duplicate bank credit",
+  duplicate_entry: "Duplicate ledger entry",
+  duplicate_gateway: "Duplicate settlement",
+  amount_mismatch: "Amount mismatch",
+  unexplained_variance: "Unexplained residual",
+  unexplained: "Needs review",
+};
+
+function presentException(ex) {
+  if (ex.display_cause && ex.evidence_teaser && (ex.evidence_facts || []).length) {
+    return {
+      label: ex.display_cause,
+      teaser: ex.evidence_teaser,
+      facts: ex.evidence_facts,
+      action: ex.evidence_action || "Review the source rows before clearing.",
+    };
+  }
+  const symptoms = new Set(ex.symptoms || []);
+  const cause = ex.cause || "";
+  const oid = ex.order_id || "this order";
+  const facts = [];
+  let action = "Review the source rows before clearing.";
+  const missingBank = symptoms.has("one_sided_no_bank_past_sla") || cause === "aged_missing_bank";
+  if (missingBank) {
+    facts.push(`Expected bank credit not found under ${oid}.`);
+    if (ex.age_days) {
+      const overdue = Math.max(0, Number(ex.age_days) - 7);
+      facts.push(overdue
+        ? `Credit is ${ex.age_days} days old — ${overdue} day(s) past the 7-day SLA.`
+        : `Age is ${ex.age_days} day(s); SLA window is 7 days.`);
+    }
+  }
+  if (symptoms.has("wrong_transaction_candidate") || cause === "wrong_transaction") {
+    facts.push("A similar amount or near-ID candidate exists on another reference and was not auto-linked.");
+    action = "Verify the UTR and bank reference before clearing.";
+  }
+  if (symptoms.has("ambiguous_match_candidate") || cause === "ambiguous_match") {
+    facts.push("Multiple or unreferenced counterparts exist; no unique link.");
+    action = "Choose the correct counterpart from the source files, or leave unmatched.";
+  }
+  if (cause === "refund_partial" || symptoms.has("refund_partial")) {
+    facts.push("Gateway refund or bank debit evidence for a partial reversal.");
+    action = "Confirm the refund against the gateway payout and the bank debit.";
+  }
+  if (cause === "refund_full" || symptoms.has("refund_full")) {
+    facts.push("Refund or reversing debit evidence nets the settled amount to zero.");
+    action = "Confirm the reversal posted on both gateway and bank.";
+  }
+  if (cause === "duplicate_credit" || symptoms.has("cardinality_break")) {
+    facts.push("Duplicate bank credits posted against this reference.");
+    action = "Confirm with the bank whether one credit should be reversed.";
+  }
+  if (!facts.length) facts.push("The matcher could not tie this row out automatically.");
+  let teaser = facts[0];
+  if (cause === "wrong_transaction" && missingBank) {
+    teaser = "Bank credit missing past SLA. Similar credit found elsewhere — not auto-linked.";
+  } else if (cause === "wrong_transaction") {
+    teaser = "Similar counterpart found on another reference — not auto-linked.";
+  } else if (missingBank) {
+    teaser = "Bank credit still missing after the SLA window.";
+  } else if (cause === "ambiguous_match") {
+    teaser = "More than one plausible counterpart — not auto-linked.";
+  }
+  return {
+    label: ex.display_cause || CAUSE_LABEL[cause] || String(cause).replaceAll("_", " "),
+    teaser,
+    facts,
+    action,
+  };
+}
+
+function evidenceHtml(ex) {
+  const presented = presentException(ex);
+  const items = presented.facts.map((f) => `<li>${escapeHtml(f)}</li>`).join("");
+  return `<details class="evidence"><summary>${escapeHtml(presented.teaser)}</summary>
+    <ul>${items}</ul>
+    <p class="action">Next: ${escapeHtml(presented.action)}</p>
+  </details>`;
+}
+
+function queueCounts(data) {
+  const exceptions = data.exceptions || [];
+  const exact = data.exact_matches || [];
+  const fuzzy = data.fuzzy_matches || [];
+  const review = data.review_matches || [];
+  const pending = data.pending || [];
+  return {
+    review: exceptions.length,
+    reconciled: exact.length + fuzzy.length + review.length,
+    pending: pending.length,
+    all: exceptions.length + exact.length + fuzzy.length + review.length + pending.length,
+  };
+}
+
+function setQueueTab(tab) {
+  queueTab = tab;
+  document.querySelectorAll("#queueTabs [role='tab']").forEach((btn) => {
+    btn.setAttribute("aria-selected", btn.dataset.tab === tab ? "true" : "false");
+  });
+  if (lastResults) renderQueue(lastResults);
+}
+
+function updateQueueCounts(data) {
+  const c = queueCounts(data);
+  $("count-review").textContent = c.review;
+  $("count-reconciled").textContent = c.reconciled;
+  $("count-pending").textContent = c.pending;
+  $("count-all").textContent = c.all;
+}
+
+function exceptionRow(ex) {
+  const showConf = showClassificationConfidence(ex);
+  const pct = showConf ? Math.round(Number(ex.confidence) * 100) : null;
+  const presented = presentException(ex);
+  const tr = document.createElement("tr");
+  tr.innerHTML = `
+    <td class="mono">${escapeHtml(ex.order_id || "")}</td>
+    <td class="num-cell">${formatInr(ex.amount)}</td>
+    <td><span class="stamp fail">${escapeHtml((ex.severity || "").toUpperCase())}</span></td>
+    <td><span class="stamp warn">${escapeHtml(presented.label)}</span></td>
+    <td>${showConf
+      ? `<span class="confidence-uncertain" title="Classifier score ${pct}%. Not a calibrated probability. Auto-confirm bar is ${Math.round(AUTO_CONFIRM * 100)}%.">Needs review</span>`
+      : `<span class="confidence-muted" title="Established classification — score withheld">—</span>`}</td>
+    <td>${evidenceHtml(ex)}</td>`;
+  return tr;
+}
+
+function matchOutcome(kind) {
+  if (kind === "exact") return ["ok", "Matched · exact"];
+  if (kind === "fuzzy") return ["ok", "Matched · tolerance"];
+  if (kind === "review") return ["warn", "Proposed · date lag"];
+  if (kind === "pending") return ["idle", "Pending bank"];
+  return ["fail", "Exception"];
+}
+
+function matchRow(rec, kind) {
+  const [cls, label] = matchOutcome(kind);
+  const tr = document.createElement("tr");
+  tr.innerHTML = `
+    <td class="mono">${escapeHtml(rec.order_id || "")}</td>
+    <td class="num-cell">${formatInr(rec.amount)}</td>
+    <td><span class="stamp ${cls}">${escapeHtml(label)}</span></td>
+    <td class="mono">${escapeHtml(rec.matched_by_rule || "—")}</td>
+    <td>${escapeHtml(rec.note || "—")}</td>`;
+  return tr;
+}
+
+function pendingRow(rec) {
+  const tr = document.createElement("tr");
+  tr.innerHTML = `
+    <td class="mono">${escapeHtml(rec.order_id || "")}</td>
+    <td class="num-cell">${formatInr(rec.amount)}</td>
+    <td><span class="stamp idle">Pending bank</span></td>
+    <td>${escapeHtml(rec.note || "Bank credit not yet due")}</td>`;
+  return tr;
+}
+
+function allRow(rec, kind) {
+  const [cls, label] = matchOutcome(kind);
+  const detail = kind === "exception"
+    ? presentException(rec).label
+    : (rec.note || rec.matched_by_rule || "—");
+  const tr = document.createElement("tr");
+  tr.innerHTML = `
+    <td class="mono">${escapeHtml(rec.order_id || "")}</td>
+    <td class="num-cell">${formatInr(rec.amount)}</td>
+    <td><span class="stamp ${cls}">${escapeHtml(label)}</span></td>
+    <td>${escapeHtml(detail)}</td>`;
+  return tr;
+}
+
+function setThead(headers) {
+  const thead = $("excTable").querySelector("thead");
+  thead.innerHTML = "<tr>" + headers.map((h) => `<th>${h}</th>`).join("") + "</tr>";
+}
+
+function appendCapped(tbody, rows) {
+  rows.slice(0, QUEUE_CAP).forEach((tr) => tbody.appendChild(tr));
+  return rows.length;
+}
+
+function renderQueue(data) {
+  updateQueueCounts(data);
+  const tbody = $("excTable").querySelector("tbody");
+  tbody.innerHTML = "";
+  const exact = data.exact_matches || [];
+  const fuzzy = data.fuzzy_matches || [];
+  const review = data.review_matches || [];
+  const pending = data.pending || [];
+  const exceptions = data.exceptions || [];
+  const notes = {
+    review: "Exceptions requiring action. Open a row for evidence and the next step.",
+    reconciled: "Exact and tolerance matches, plus date-lag proposed matches. Cleared rows stay auditable here.",
+    pending: "Bank credit not yet due. These are not treated as breaks.",
+    all: "Full batch. Same rows as the other tabs, combined.",
+  };
+  const empty = {
+    review: "No exceptions in this batch.",
+    reconciled: "No reconciled rows in this batch.",
+    pending: "No pending-bank rows in this batch.",
+    all: "No rows in this batch.",
+  };
+  let rows = [];
+  if (queueTab === "review") {
+    setThead(["Order ID", "Amount", "Severity", "Cause", "Confidence", "Evidence &amp; explanation"]);
+    rows = exceptions.map(exceptionRow);
+  } else if (queueTab === "reconciled") {
+    setThead(["Order ID", "Amount", "Outcome", "Rule", "Note"]);
+    rows = [
+      ...exact.map((r) => matchRow(r, "exact")),
+      ...fuzzy.map((r) => matchRow(r, "fuzzy")),
+      ...review.map((r) => matchRow(r, "review")),
+    ];
+  } else if (queueTab === "pending") {
+    setThead(["Order ID", "Amount", "Status", "Note"]);
+    rows = pending.map(pendingRow);
+  } else {
+    setThead(["Order ID", "Amount", "Outcome", "Detail"]);
+    rows = [
+      ...exceptions.map((r) => allRow(r, "exception")),
+      ...exact.map((r) => allRow(r, "exact")),
+      ...fuzzy.map((r) => allRow(r, "fuzzy")),
+      ...review.map((r) => allRow(r, "review")),
+      ...pending.map((r) => allRow(r, "pending")),
+    ];
+  }
+  const total = appendCapped(tbody, rows);
+  if (!rows.length) {
+    const cols = $("excTable").querySelectorAll("thead th").length || 4;
+    tbody.innerHTML = `<tr><td colspan="${cols}" class="queue-empty">${empty[queueTab]}</td></tr>`;
+  }
+  const capNote = total > QUEUE_CAP ? ` Showing first ${QUEUE_CAP} of ${total}.` : "";
+  $("queueNote").textContent = notes[queueTab] + capNote;
+}
+
+async function loadFullResults(batchId) {
+  try {
+    const res = await fetch(`/api/batches/${batchId}/results`);
+    if (!res.ok) return;
+    lastResults = await res.json();
+    setQueueTab("review");
+  } catch (_) {}
+}
+
+async function api(path, opts = {}) {
+  const res = await fetch(path, opts);
+  const data = await res.json().catch(() => ({}));
+  if (!res.ok) throw new Error(data.error || res.statusText);
+  return data;
+}
+
+async function ensureBatch() {
+  if (batch?.batch_id) return batch;
+  batch = await api("/api/batches", { method: "POST" });
+  renderBatch(batch);
+  return batch;
+}
+
+async function uploadFile(role, file) {
+  await ensureBatch();
+  const fd = new FormData();
+  fd.append("file", file, file.name);
+  setBanner($("uploadMsg"), `Uploading ${role}…`, null);
+  const state = await api(`/api/batches/${batch.batch_id}/upload/${role}`, { method:"POST", body:fd });
+  setBanner($("uploadMsg"), `${role} stored. ${ROLES.filter(r => state.files[r]).length}/3 files ready.`, "ok");
+  renderBatch(state);
+}
+
+ROLES.forEach((role) => {
+  const drop = $("drop-" + role);
+  const input = drop.querySelector("input");
+  input.addEventListener("change", () => {
+    if (input.files?.[0]) uploadFile(role, input.files[0]).catch((e) => setBanner($("uploadMsg"), e.message, "fail"));
+  });
+  ["dragenter","dragover"].forEach((ev) => drop.addEventListener(ev, (e) => { e.preventDefault(); drop.classList.add("drag"); }));
+  ["dragleave","drop"].forEach((ev) => drop.addEventListener(ev, (e) => { e.preventDefault(); drop.classList.remove("drag"); }));
+  drop.addEventListener("drop", (e) => {
+    const file = e.dataTransfer?.files?.[0];
+    if (file) uploadFile(role, file).catch((err) => setBanner($("uploadMsg"), err.message, "fail"));
+  });
+});
+
+document.querySelectorAll("#rail .cell").forEach((step) => {
+  step.addEventListener("click", () => {
+    if (step.disabled) return;
+    const target = $(step.dataset.target);
+    if (!target) return;
+    const hiddenParent = target.closest(".hidden");
+    if (target.classList.contains("hidden") || hiddenParent) return;
+    target.scrollIntoView({behavior:"smooth", block:"start"});
+    if (target.hasAttribute("tabindex")) target.focus({preventScroll:true});
+  });
+});
+
+document.querySelectorAll("#queueTabs [role='tab']").forEach((btn) => {
+  btn.addEventListener("click", () => setQueueTab(btn.dataset.tab));
+});
+
+$("btnNew").addEventListener("click", async () => {
+  batch = await api("/api/batches", { method: "POST" });
+  lastResults = null;
+  queueTab = "review";
+  $("resultsWrap").classList.add("hidden");
+  setBanner($("uploadMsg"), "New batch created. Upload three CSVs.", null);
+  setBanner($("validateMsg"), "", null);
+  setBanner($("reconcileMsg"), "", null);
+  renderBatch(batch);
+});
+
+$("btnDemo").addEventListener("click", () => {
+  setBanner($("uploadMsg"),
+    "Demo: data/internal_ledger.csv + settlement_report.csv + bank_statement.csv  ·  or evaluation_datasets/easy_100/{internal_ledger,gateway_settlement,bank_statement}.csv",
+    null);
+});
+
+$("btnValidate").addEventListener("click", async () => {
+  try {
+    $("btnValidate").disabled = true;
+    setBanner($("validateMsg"), "Validating monetary fields and schema…", null);
+    const state = await api(`/api/batches/${batch.batch_id}/validate`, { method:"POST" });
+    renderBatch(state);
+  } catch (e) {
+    setBanner($("validateMsg"), e.message, "fail");
+    $("btnValidate").disabled = false;
+  }
+});
+
+$("btnReconcile").addEventListener("click", async () => {
+  try {
+    $("btnReconcile").disabled = true;
+    setBanner($("reconcileMsg"), "Running frozen matcher + classifier…", null);
+    const state = await api(`/api/batches/${batch.batch_id}/reconcile`, { method:"POST" });
+    renderBatch(state);
+  } catch (e) {
+    setBanner($("reconcileMsg"), e.message, "fail");
+    $("btnReconcile").disabled = false;
+  }
+});
+
+ensureBatch().catch((e) => setBanner($("uploadMsg"), e.message, "fail"));
+</script>
+</body>
+</html>

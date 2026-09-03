@@ -1,0 +1,19 @@
+{
+  "dataset_name": "reversal_debit",
+  "difficulty": "adversarial",
+  "kind": "matching",
+  "seed": 20260830,
+  "number_of_base_transactions": 5,
+  "currency": "INR",
+  "agent_input_files": [
+    "internal_ledger.csv",
+    "gateway_settlement.csv",
+    "bank_statement.csv"
+  ],
+  "hidden_files": [
+    "ground_truth.csv",
+    "dataset_metadata.json",
+    "README.md"
+  ],
+  "independent_of_heldout": true
+}

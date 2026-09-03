@@ -1,0 +1,66 @@
+{
+  "sla_days": 7,
+  "exact_max_settle_lag_days": 3,
+  "standard_fee_rate": 0.02,
+  "tds_rate": 0.01,
+  "fee_rate_candidates": [0.012, 0.015, 0.02, 0.025, 0.03],
+  "rounding_tolerance_rupees": 1.0,
+  "date_lag_tolerance_days": 7,
+  "confidence": {
+    "auto": 0.9,
+    "review": 0.6
+  },
+  "severity": {
+    "critical_amount": 10000,
+    "critical_age_days": 5,
+    "high_amount": 5000,
+    "high_age_days": 3,
+    "medium_amount": 1000,
+    "medium_age_days": 1
+  },
+  "rules": [
+    {
+      "id": "exact_standard_fee",
+      "priority": 1,
+      "type": "exact",
+      "auto_confirm": true,
+      "confidence": 1.0
+    },
+    {
+      "id": "tolerance_fee_tds_round",
+      "priority": 10,
+      "type": "tolerance",
+      "auto_confirm": true,
+      "confidence": 0.9
+    },
+    {
+      "id": "rounding_review",
+      "priority": 11,
+      "type": "rounding",
+      "auto_confirm": false,
+      "confidence": 0.75
+    },
+    {
+      "id": "date_lag",
+      "priority": 20,
+      "type": "date_lag",
+      "auto_confirm": true,
+      "confidence": 0.9,
+      "max_days": 7
+    },
+    {
+      "id": "batch_n_to_1",
+      "priority": 15,
+      "type": "batch",
+      "auto_confirm": true,
+      "confidence": 0.9
+    },
+    {
+      "id": "one_to_many",
+      "priority": 16,
+      "type": "split",
+      "auto_confirm": true,
+      "confidence": 0.9
+    }
+  ]
+}

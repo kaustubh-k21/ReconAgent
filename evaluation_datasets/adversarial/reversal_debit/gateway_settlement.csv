@@ -1,0 +1,6 @@
+settlement_id,merchant_order_id,settlement_date,gross_amount,fee,tds,refund_amount,net_amount,payment_mode,payout_batch
+st_REV001,REV001,2026-07-01,1250.25,25.00,0.00,0.00,1225.25,UPI,
+st_REV002,REV002,2026-07-01,1500.50,30.01,0.00,0.00,1470.49,UPI,
+st_REV003,REV003,2026-07-01,1750.75,35.02,0.00,0.00,1715.73,UPI,
+st_ADVREV1,ADVREV1,2026-07-07,4500.00,90.00,0.00,4410.00,4410.00,UPI,
+st_ADVREV2,ADVREV2,2026-07-07,3600.00,72.00,0.00,800.00,3528.00,UPI,

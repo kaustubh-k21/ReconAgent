@@ -1,0 +1,4 @@
+settlement_id,merchant_order_id,settlement_date,gross_amount,fee,tds,refund_amount,net_amount,payment_mode,payout_batch
+st_MIS001,MIS001,2026-07-01,1250.25,25.00,0.00,0.00,1225.25,UPI,
+st_MIS002,MIS002,2026-07-01,1500.50,30.01,0.00,0.00,1470.49,UPI,
+st_ADVMIS1,ADVMIS1,2026-07-09,800.00,16.00,0.00,0.00,784.00,UPI,

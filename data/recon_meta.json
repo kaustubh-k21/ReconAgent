@@ -1,0 +1,6 @@
+{
+  "as_of": "2026-08-05",
+  "sla_days": 7,
+  "seed": 42,
+  "n_transactions": 70
+}

@@ -1,0 +1,10 @@
+transaction_id,expected_decision,expected_reason,expected_ledger_amount,expected_gateway_amount,expected_settlement_amount,expected_bank_amount,expected_variance,expected_match_type,expected_confidence_band,human_review_required,adversarial_tag
+ADV001,MATCH,,1250.25,1250.25,1225.25,1225.25,0.00,EXACT,high,false,ballast
+ADV002,MATCH,,1500.50,1500.50,1470.49,1470.49,0.00,EXACT,high,false,ballast
+ADV003,MATCH,,1750.75,1750.75,1715.73,1715.73,0.00,EXACT,high,false,ballast
+ADV004,MATCH,,2001.00,2001.00,1960.98,1960.98,0.00,EXACT,high,false,ballast
+ADV005,MATCH,,2251.25,2251.25,2206.23,2206.23,0.00,EXACT,high,false,ballast
+ADV006,MATCH,,2501.50,2501.50,2451.47,2451.47,0.00,EXACT,high,false,ballast
+ADV0128,EXCEPTION,wrong_transaction,5000.00,,,,0.00,EXCEPTION,high,true,near_id_no_settlement
+ADV0182,MATCH,,5000.00,5000.00,4900.00,4900.00,0.00,EXACT,high,false,near_id_true_pair
+ADV0129,EXCEPTION,wrong_transaction,2500.00,,,,0.00,EXCEPTION,high,true,near_id_orphan_ledger

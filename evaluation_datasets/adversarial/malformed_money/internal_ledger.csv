@@ -1,0 +1,4 @@
+order_id,order_date,amount,currency,customer_name,channel
+BAD001,2026-07-01,1250.25,INR,Ballast 1,UPI
+BAD002,2026-07-01,1500.5,INR,Ballast 2,UPI
+ADVBAD1,2026-07-09,abc,INR,Malformed Amount,UPI

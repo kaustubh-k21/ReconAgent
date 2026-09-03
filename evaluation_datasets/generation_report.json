@@ -1,0 +1,77 @@
+{
+  "easy_100": {
+    "transactions": 100,
+    "expected_MATCH": 80,
+    "expected_EXCEPTION": 20,
+    "match_types": {
+      "EXACT": 70,
+      "TOLERANCE": 3,
+      "EXCEPTION": 20,
+      "FUZZY": 7
+    },
+    "exception_reasons": {
+      "refund_partial": 4,
+      "missing_bank_credit": 5,
+      "duplicate_bank_credit": 3,
+      "amount_mismatch": 3,
+      "missing_settlement": 5
+    },
+    "ledger_rows": 100,
+    "gateway_rows": 95,
+    "bank_rows": 93
+  },
+  "medium_100": {
+    "transactions": 100,
+    "expected_MATCH": 60,
+    "expected_EXCEPTION": 40,
+    "match_types": {
+      "EXCEPTION": 40,
+      "TOLERANCE": 12,
+      "FUZZY": 11,
+      "EXACT": 31,
+      "MANY_TO_ONE": 3,
+      "ONE_TO_MANY": 3
+    },
+    "exception_reasons": {
+      "duplicate_gateway": 5,
+      "duplicate_bank_credit": 5,
+      "amount_mismatch": 8,
+      "refund_partial": 5,
+      "missing_settlement": 6,
+      "missing_bank_credit": 8,
+      "refund_full": 3
+    },
+    "ledger_rows": 100,
+    "gateway_rows": 113,
+    "bank_rows": 107
+  },
+  "hard_100": {
+    "transactions": 100,
+    "expected_MATCH": 46,
+    "expected_EXCEPTION": 54,
+    "match_types": {
+      "EXACT": 24,
+      "TOLERANCE": 7,
+      "FUZZY": 7,
+      "MANY_TO_ONE": 5,
+      "ONE_TO_MANY": 3,
+      "EXCEPTION": 54
+    },
+    "exception_reasons": {
+      "ambiguous_match": 5,
+      "duplicate_gateway": 4,
+      "duplicate_bank_credit": 4,
+      "amount_mismatch": 10,
+      "refund_full": 1,
+      "refund_partial": 5,
+      "unexplained_variance": 4,
+      "missing_settlement": 7,
+      "missing_bank_credit": 7,
+      "wrong_transaction": 7
+    },
+    "ledger_rows": 100,
+    "gateway_rows": 108,
+    "bank_rows": 98
+  },
+  "zip": "/Users/kaustubhh/Desktop/reconagent/evaluation_datasets/all_evaluation_datasets.zip"
+}

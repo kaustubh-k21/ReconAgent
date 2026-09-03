@@ -1,0 +1,5 @@
+{
+  "status": "VALIDATION_FAILED",
+  "must_quarantine_field": "amount",
+  "block_reconcile": true
+}

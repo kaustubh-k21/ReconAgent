@@ -1,0 +1,10 @@
+order_id,order_date,amount,currency,customer_name,channel
+THR001,2026-07-01,1250.25,INR,Ballast 1,UPI
+THR002,2026-07-01,1500.5,INR,Ballast 2,UPI
+THR003,2026-07-01,1750.75,INR,Ballast 3,UPI
+THR004,2026-07-01,2001.0,INR,Ballast 4,UPI
+ADVROUND99,2026-07-04,4000.0,INR,sub_rupee_rounding,UPI
+ADVONE00,2026-07-04,4000.0,INR,one_rupee_cap,UPI
+ADVJUST01,2026-07-04,4100.0,INR,just_over_rupee,UPI
+ADVTEN00,2026-07-04,4200.0,INR,ten_rupee_residual,UPI
+ADVFIFTEEN,2026-07-04,4300.0,INR,over_ten_mismatch,UPI

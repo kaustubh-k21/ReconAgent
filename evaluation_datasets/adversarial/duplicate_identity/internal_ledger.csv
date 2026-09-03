@@ -1,0 +1,8 @@
+order_id,order_date,amount,currency,customer_name,channel
+DUP001,2026-07-01,1250.25,INR,Ballast 1,UPI
+DUP002,2026-07-01,1500.5,INR,Ballast 2,UPI
+DUP003,2026-07-01,1750.75,INR,Ballast 3,UPI
+DUP004,2026-07-01,2001.0,INR,Ballast 4,UPI
+ADVDUP1,2026-07-03,3499.0,INR,Duplicate Credit,UPI
+ADVDUP2,2026-07-03,2200.0,INR,Duplicate Ledger A,UPI
+ADVDUP2,2026-07-03,2200.0,INR,Duplicate Ledger B,UPI

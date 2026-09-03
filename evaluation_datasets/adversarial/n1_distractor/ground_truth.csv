@@ -1,0 +1,9 @@
+transaction_id,expected_decision,expected_reason,expected_ledger_amount,expected_gateway_amount,expected_settlement_amount,expected_bank_amount,expected_variance,expected_match_type,expected_confidence_band,human_review_required,adversarial_tag
+N1B001,MATCH,,1250.25,1250.25,1225.25,1225.25,0.00,EXACT,high,false,ballast
+N1B002,MATCH,,1500.50,1500.50,1470.49,1470.49,0.00,EXACT,high,false,ballast
+N1B003,MATCH,,1750.75,1750.75,1715.73,1715.73,0.00,EXACT,high,false,ballast
+ADVN1A,MATCH,,1000.00,1000.00,980.00,,0.00,MANY_TO_ONE,high,false,honest_n_to_1
+ADVN1B,MATCH,,2000.00,2000.00,1960.00,,0.00,MANY_TO_ONE,high,false,honest_n_to_1
+ADVN1C,MATCH,,3000.00,3000.00,2940.00,5880.00,0.00,MANY_TO_ONE,high,false,honest_n_to_1
+ADVN1SHORT,EXCEPTION,missing_bank_credit,1500.00,1500.00,1470.00,3905.00,0.00,EXCEPTION,high,true,batch_shortfall
+ADVN1GAP,EXCEPTION,missing_bank_credit,2500.00,2500.00,2450.00,3905.00,0.00,EXCEPTION,high,true,batch_shortfall

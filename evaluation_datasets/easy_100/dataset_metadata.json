@@ -1,0 +1,39 @@
+{
+  "dataset_name": "easy_100",
+  "difficulty": "easy",
+  "seed": 194827,
+  "number_of_base_transactions": 100,
+  "number_of_ledger_rows": 100,
+  "number_of_gateway_rows": 95,
+  "number_of_bank_rows": 93,
+  "expected_match_count": 80,
+  "expected_exception_count": 20,
+  "expected_exact_count": 70,
+  "expected_fuzzy_count": 10,
+  "expected_many_to_one_count": 0,
+  "expected_one_to_many_count": 0,
+  "match_type_distribution": {
+    "EXACT": 70,
+    "TOLERANCE": 3,
+    "EXCEPTION": 20,
+    "FUZZY": 7
+  },
+  "exception_reason_distribution": {
+    "refund_partial": 4,
+    "missing_bank_credit": 5,
+    "duplicate_bank_credit": 3,
+    "amount_mismatch": 3,
+    "missing_settlement": 5
+  },
+  "currency": "INR",
+  "agent_input_files": [
+    "internal_ledger.csv",
+    "gateway_settlement.csv",
+    "bank_statement.csv"
+  ],
+  "hidden_files": [
+    "ground_truth.csv",
+    "dataset_metadata.json",
+    "README.md"
+  ]
+}

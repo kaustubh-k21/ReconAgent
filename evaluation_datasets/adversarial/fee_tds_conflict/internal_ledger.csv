@@ -1,0 +1,6 @@
+order_id,order_date,amount,currency,customer_name,channel
+FEE001,2026-07-01,1250.25,INR,Ballast 1,UPI
+FEE002,2026-07-01,1500.5,INR,Ballast 2,UPI
+FEE003,2026-07-01,1750.75,INR,Ballast 3,UPI
+ADVFEE1,2026-07-06,10000.0,INR,Broken Arithmetic,UPI
+ADVFEE2,2026-07-06,8200.0,INR,Gross Mismatch,UPI

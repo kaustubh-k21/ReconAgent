@@ -1,0 +1,6 @@
+order_id,order_date,amount,currency,customer_name,channel
+REV001,2026-07-01,1250.25,INR,Ballast 1,UPI
+REV002,2026-07-01,1500.5,INR,Ballast 2,UPI
+REV003,2026-07-01,1750.75,INR,Ballast 3,UPI
+ADVREV1,2026-07-07,4500.0,INR,Full Reversal,UPI
+ADVREV2,2026-07-07,3600.0,INR,Partial Refund,UPI

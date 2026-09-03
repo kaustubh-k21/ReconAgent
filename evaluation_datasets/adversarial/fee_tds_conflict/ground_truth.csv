@@ -1,0 +1,6 @@
+transaction_id,expected_decision,expected_reason,expected_ledger_amount,expected_gateway_amount,expected_settlement_amount,expected_bank_amount,expected_variance,expected_match_type,expected_confidence_band,human_review_required,adversarial_tag
+FEE001,MATCH,,1250.25,1250.25,1225.25,1225.25,0.00,EXACT,high,false,ballast
+FEE002,MATCH,,1500.50,1500.50,1470.49,1470.49,0.00,EXACT,high,false,ballast
+FEE003,MATCH,,1750.75,1750.75,1715.73,1715.73,0.00,EXACT,high,false,ballast
+ADVFEE1,EXCEPTION,amount_mismatch,10000.00,10000.00,9000.00,9000.00,0.00,EXCEPTION,high,true,gateway_math_break
+ADVFEE2,EXCEPTION,amount_mismatch,8200.00,8000.00,7840.00,7840.00,0.00,EXCEPTION,high,true,ledger_vs_gross

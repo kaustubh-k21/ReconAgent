@@ -1,0 +1,3074 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Reconciliation Agent — Run Ledger</title>
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,500;9..144,600;9..144,700&family=Source+Serif+4:ital,wght@0,400;0,500;0,600;1,400&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --paper: #FDFBF7; /* Warm cream */
+    --paper-2: #F5F1E5; /* Slightly darker cream card background */
+    --rule: #DDD7C5; /* Muted rules */
+    --ink: #1F241E; /* Rich carbon dark ink */
+    --ink-soft: #63665E; /* Soft graphite ink */
+    --forest: #20402C; /* Dark sage forest */
+    --forest-2: #2E593E; /* Bright forest accent */
+    --brass: #8E6D2E; /* Warm antique brass */
+    --rust: #923425; /* Dark rust exception accent */
+    --rust-2: #B83F2E; /* Soft red warning accent */
+    --exact-bg: #E1EADF; /* Subtle exact match green */
+    --fuzzy-bg: #F2ECDC; /* Subtle fuzzy match yellow */
+    --exception-bg: #F4E4DC; /* Subtle exception match pink */
+  }
+  
+  *{box-sizing:border-box;}
+  html,body{margin:0;padding:0;background:var(--paper);color:var(--ink);}
+  
+  body{
+    font-family:"Source Serif 4", Georgia, serif;
+    font-size:16px;
+    line-height:1.5;
+    background-image:
+      repeating-linear-gradient(180deg, transparent, transparent 37px, var(--rule) 37px, var(--rule) 38px);
+  }
+  
+  /* Noise texture layer overlay */
+  .noise-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100vw;
+    height: 100vh;
+    content: "";
+    opacity: 0.025;
+    z-index: 9999;
+    pointer-events: none;
+    background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.8' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)'/%3E%3C/svg%3E");
+  }
+
+  .wrap{max-width:980px;margin:0 auto;padding:56px 32px 96px;}
+
+  header.masthead{
+    display:flex;justify-content:space-between;align-items:flex-end;
+    border-bottom:3px double var(--ink);
+    padding-bottom:18px;margin-bottom:8px;
+  }
+  .masthead h1{
+    font-family:"Fraunces", serif;
+    font-weight:600;
+    font-size:2.6rem;
+    letter-spacing:-0.02em;
+    margin:0;
+    line-height:1.05;
+  }
+  .masthead .sub{
+    font-family:"IBM Plex Mono", monospace;
+    font-size:0.72rem;
+    letter-spacing:0.12em;
+    text-transform:uppercase;
+    color:var(--ink-soft);
+    margin-top:8px;
+  }
+  .masthead .folio{
+    font-family:"IBM Plex Mono", monospace;
+    font-size:0.78rem;
+    text-align:right;
+    color:var(--ink-soft);
+    line-height:1.6;
+  }
+  .masthead .folio b{color:var(--ink); font-weight:600;}
+
+  /* Tally Metrics Grid */
+  .tally{
+    display:grid;
+    grid-template-columns:repeat(6,1fr);
+    gap:1px;
+    background:var(--ink);
+    margin:28px 0 40px;
+    border:1px solid var(--ink);
+    box-shadow: 0 4px 20px rgba(31, 36, 30, 0.06);
+  }
+  .tally .cell{
+    background:var(--paper-2);
+    padding:20px 14px;
+    text-align:center;
+    transition: background-color 0.3s cubic-bezier(0.32, 0.72, 0, 1), transform 0.3s cubic-bezier(0.32, 0.72, 0, 1);
+  }
+  .tally .cell:hover{
+    background:var(--paper);
+    transform:translateY(-2px);
+    cursor:default;
+  }
+  .tally .cell .num{
+    font-family:"IBM Plex Mono", monospace;
+    font-weight:600;
+    font-size:1.8rem;
+    font-variant-numeric:tabular-nums;
+    transition: color 0.3s ease;
+  }
+  .tally .cell .label{
+    font-family:"IBM Plex Mono", monospace;
+    font-size:0.64rem;
+    letter-spacing:0.08em;
+    text-transform:uppercase;
+    color:var(--ink-soft);
+    margin-top:6px;
+  }
+  .tally .cell.accent .num{color:var(--forest-2);}
+  .tally .cell.warn .num{color:var(--rust-2);}
+
+  /* Section Headings */
+  h2.section{
+    font-family:"Fraunces", serif;
+    font-weight:600;
+    font-size:1.45rem;
+    margin:48px 0 6px;
+    display:flex;align-items:baseline;gap:12px;
+  }
+  h2.section .idx{
+    font-family:"IBM Plex Mono", monospace;
+    font-size:0.78rem;
+    color:var(--brass);
+    letter-spacing:0.06em;
+  }
+  p.deck{color:var(--ink-soft); margin:0 0 24px; font-size:0.95rem; max-width:70ch;}
+
+  /* Matching Breakdown Bar Track */
+  .bar-track{
+    display:flex; height:34px; border:1px solid var(--ink); overflow:hidden;
+    font-family:"IBM Plex Mono", monospace; font-size:0.75rem;
+    box-shadow: inset 0 2px 4px rgba(0,0,0,0.05);
+  }
+  .bar-seg{display:flex;align-items:center;justify-content:center;color:var(--ink);white-space:nowrap;overflow:hidden;font-weight:600;}
+  .bar-seg.exact{background:var(--exact-bg);}
+  .bar-seg.fuzzy{background:var(--fuzzy-bg);}
+  .bar-seg.review{background:#E8E4F0;}
+  .bar-seg.pending{background:#E4EEF4;}
+  .bar-seg.exception{background:var(--exception-bg);}
+  .bar-legend{display:flex;flex-wrap:wrap;gap:22px;margin-top:12px;font-family:"IBM Plex Mono", monospace;font-size:0.7rem;color:var(--ink-soft);}
+  .bar-legend .swatch{display:inline-block;width:10px;height:10px;margin-right:6px;vertical-align:-1px;border:1px solid var(--ink);}
+  .stamp.aged{color:var(--brass); background:#FAF5EA;}
+  .stamp.sev-critical{color:var(--rust-2); border-color:var(--rust-2);}
+  .stamp.sev-high{color:var(--rust); border-color:var(--rust);}
+  .stamp.sev-medium{color:var(--brass); border-color:var(--brass);}
+  .stamp.sev-low{color:var(--ink-soft); border-color:var(--ink-soft);}
+  .meta-row{display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-top:18px;}
+  .meta-box{background:var(--paper-2);border:1px solid var(--rule);border-radius:6px;padding:14px 16px;font-family:"IBM Plex Mono",monospace;font-size:0.72rem;color:var(--ink-soft);line-height:1.7;}
+  .meta-box b{color:var(--ink);}
+  @media (max-width:700px){
+    .meta-row{grid-template-columns:1fr;}
+  }
+
+  /* Double Bezel Card Construction for Tables */
+  .card-bezel-outer {
+    background: var(--paper-2);
+    border: 1px solid var(--rule);
+    border-radius: 8px;
+    padding: 3px;
+    box-shadow: 0 4px 18px rgba(0, 0, 0, 0.03);
+    margin-top: 18px;
+  }
+  .card-bezel-inner {
+    background: var(--paper);
+    border: 1px solid var(--rule);
+    border-radius: 6px;
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+  }
+
+  /* Ledger Table Style */
+  table.ledger{width:100%; border-collapse:collapse; margin-top:0; font-size:0.88rem; min-width: 750px;}
+  table.ledger thead th{
+    text-align:left; font-family:"IBM Plex Mono", monospace; font-size:0.66rem;
+    letter-spacing:0.08em; text-transform:uppercase; color:var(--ink-soft);
+    border-bottom:2px solid var(--ink); padding:14px 12px;
+    background: var(--paper-2);
+  }
+  table.ledger td{padding:12px 12px; border-bottom:1px solid var(--rule); vertical-align:middle;}
+  table.ledger tr:last-child td{border-bottom:none;}
+  table.ledger tbody tr {
+    transition: background-color 0.2s cubic-bezier(0.32, 0.72, 0, 1);
+  }
+  table.ledger tbody tr:hover {
+    background-color: var(--paper-2);
+  }
+  
+  .mono{font-family:"IBM Plex Mono", monospace; font-variant-numeric:tabular-nums;}
+  .num-cell{font-family:"IBM Plex Mono", monospace; font-variant-numeric:tabular-nums; text-align:right;}
+
+  /* Stamps for Status Indication */
+  .stamp{
+    display:inline-block;
+    white-space:nowrap;
+    font-family:"IBM Plex Mono", monospace;
+    font-size:0.62rem;
+    letter-spacing:0.09em;
+    text-transform:uppercase;
+    padding:3px 8px;
+    border:1.5px solid currentColor;
+    border-radius:3px;
+    transform:rotate(-1deg);
+    font-weight: 500;
+  }
+  .stamp.dup{color:var(--brass); background: #FAF5EA;}
+  .stamp.missing{color:var(--rust-2); background: #FDF1EF;}
+  .stamp.refund{color:var(--rust); background: #FAF0EE;}
+  .stamp.unexplained{color:var(--ink-soft); background: #F3F3F1;}
+
+  .confidence-uncertain{
+    color:var(--brass);font-family:"IBM Plex Mono",monospace;font-size:0.72rem;
+    letter-spacing:0.04em;text-transform:uppercase;white-space:nowrap;
+  }
+  .confidence-muted{color:var(--ink-soft);}
+  .evidence{color:var(--ink);font-size:0.92rem;max-width:48ch;min-width:210px;line-height:1.5;}
+  .evidence summary{
+    color:var(--ink);cursor:pointer;font-family:"Source Serif 4", Georgia, serif;
+    font-size:0.9rem;letter-spacing:0;list-style-position:outside;font-weight:500;
+  }
+  .evidence summary:hover{text-decoration:underline;color:var(--forest);}
+  .evidence summary:focus-visible{outline:2px solid var(--brass);outline-offset:3px;}
+  .evidence ul{margin:8px 0 0;padding-left:1.1em;}
+  .evidence li{margin:0 0 4px;}
+  .evidence .action{
+    margin:10px 0 0;color:var(--forest);
+    font-family:"IBM Plex Mono",monospace;font-size:0.72rem;letter-spacing:0.02em;
+  }
+
+  /* Self-Scoring Accuracy Box */
+  .accuracy-box{
+    border:1px solid var(--ink); padding:24px 28px; margin-top:20px;
+    background:var(--paper-2);
+    display:flex; align-items:center; gap:28px;
+    box-shadow: 0 4px 18px rgba(0, 0, 0, 0.04);
+  }
+  .accuracy-box .big{
+    font-family:"IBM Plex Mono", monospace; font-weight:600; font-size:2.6rem; color:var(--forest-2);
+  }
+  .accuracy-box .desc{font-size:0.88rem; color:var(--ink-soft); max-width:55ch; line-height: 1.5;}
+
+  footer{
+    margin-top:80px; padding-top:18px; border-top:1px solid var(--rule);
+    font-family:"IBM Plex Mono", monospace; font-size:0.68rem; color:var(--ink-soft);
+    display:flex; justify-content:space-between;
+  }
+
+  .warning-banner {
+    background-color: #FDF6E2;
+    border: 1px solid #E6B046;
+    color: #8E6D2E;
+    padding: 10px 14px;
+    border-radius: 4px;
+    font-family: "IBM Plex Mono", monospace;
+    font-size: 0.75rem;
+    margin-bottom: 20px;
+    display: none;
+    line-height: 1.4;
+  }
+
+  @media (max-width:700px){
+    .tally{grid-template-columns:repeat(2,1fr);}
+    .tally .tally-acc{grid-column:span 2;}
+    .masthead{flex-direction:column; align-items:flex-start; gap:10px;}
+    .masthead .folio{text-align:left;}
+  }
+</style>
+</head>
+<body>
+<div class="noise-overlay"></div>
+<div class="wrap">
+
+  <header class="masthead">
+    <div>
+      <h1>Reconciliation&nbsp;Agent</h1>
+      <div class="sub">Two-leg rec · ledger↔settlement · settlement↔bank</div>
+    </div>
+    <div class="folio">
+      Classifier Mode: <b id="fMode">—</b><br>
+      Batch size: <b id="fTotal">—</b> transactions
+    </div>
+  </header>
+
+  <div id="fallbackBanner" class="warning-banner"></div>
+
+  <div class="tally">
+    <div class="cell accent"><div class="num" id="tExact">—</div><div class="label">Exact</div></div>
+    <div class="cell accent"><div class="num" id="tFuzzy">—</div><div class="label">Tolerance</div></div>
+    <div class="cell"><div class="num" id="tReview">—</div><div class="label">Review</div></div>
+    <div class="cell"><div class="num" id="tPending">—</div><div class="label">Pending bank</div></div>
+    <div class="cell warn"><div class="num" id="tExc">—</div><div class="label">Exceptions</div></div>
+    <div class="cell tally-acc"><div class="num" id="tAcc">—</div><div class="label">Self-scored accuracy</div></div>
+  </div>
+
+  <h2 class="section"><span class="idx">01</span> Batch composition</h2>
+  <p class="deck">Auto-cleared (exact + tolerance), date-lag review, within-SLA pending bank, and genuine exceptions. Auto-match rate and auto+review rate are reported separately — lag is never silently called “matched.”</p>
+  <div class="bar-track" id="barTrack"></div>
+  <div class="bar-legend">
+    <span><span class="swatch" style="background:var(--exact-bg)"></span>Exact</span>
+    <span><span class="swatch" style="background:var(--fuzzy-bg)"></span>Tolerance</span>
+    <span><span class="swatch" style="background:#E8E4F0"></span>Review (date-lag)</span>
+    <span><span class="swatch" style="background:#E4EEF4"></span>Pending bank</span>
+    <span><span class="swatch" style="background:var(--exception-bg)"></span>Exception</span>
+  </div>
+  <div class="meta-row">
+    <div class="meta-box" id="legBox">Leg summary: —</div>
+    <div class="meta-box" id="ruleBox">Matched by rule: —</div>
+  </div>
+  <p class="deck" style="margin-top:14px" id="rateLine">Rates: —</p>
+
+  <h2 class="section"><span class="idx">02</span> Exception triage</h2>
+  <p class="deck">Every record the matcher couldn't tie out, with severity, cause, and evidence — critical/high first. Confidence appears only below the matching-policy auto-confirm bar (0.90) or for inherently uncertain causes. Open a row for facts and the next action.</p>
+
+  <!-- Provenance Panel -->
+  <div class="provenance-panel" id="provPanel" style="margin-bottom: 14px; padding: 12px 16px; background: var(--paper-2); border: 1.5px solid var(--rule); border-radius: 4px; font-family: 'IBM Plex Mono', monospace; font-size: 0.75rem; color: var(--ink-soft); display: flex; gap: 12px; align-items: center; box-shadow: 0 4px 12px rgba(0, 0, 0, 0.02);">
+    <span style="font-weight: 600; color: var(--ink); text-transform: uppercase; letter-spacing: 0.05em; font-size: 0.7rem;">Classifier Provenance:</span>
+    <span id="provCounts">—</span>
+  </div>
+  
+  <div class="card-bezel-outer">
+    <div class="card-bezel-inner">
+      <table class="ledger">
+        <thead>
+          <tr>
+            <th>Order ID</th>
+            <th class="num-cell" style="width: 12%">Amount</th>
+            <th style="width: 10%">Severity</th>
+            <th style="width: 18%">Cause</th>
+            <th style="width: 12%">Confidence</th>
+            <th style="width:32%">Evidence &amp; explanation</th>
+          </tr>
+        </thead>
+        <tbody id="excBody"></tbody>
+      </table>
+    </div>
+  </div>
+
+  <h2 class="section"><span class="idx">03</span> Self-scored accuracy</h2>
+  <p class="deck">Every synthetic record in this batch was seeded with a known ground-truth cause. This is how the pipeline scored against that truth — the honest-metrics step run automatically on every batch.</p>
+  <div class="accuracy-box">
+    <div class="big" id="accBig">—</div>
+    <div class="desc">of synthetic transactions were resolved to the correct outcome — either matched through the correct tier, or, where they couldn't be mechanically matched, assigned the correct root cause by the classifier. Misses are shown as <span class="stamp unexplained" style="transform:none;">unexplained</span> rather than a wrong guess dressed up with false confidence.</div>
+  </div>
+
+  <!-- Category Accuracy Breakdown -->
+  <div id="categoryAccuracyContainer" style="margin-top: 24px; display: none;">
+    <h3 style="font-family: 'IBM Plex Mono', monospace; font-size: 0.8rem; text-transform: uppercase; letter-spacing: 0.05em; color: var(--ink-soft); margin-bottom: 12px;">Accuracy Breakdown by Category</h3>
+    <div class="card-bezel-outer">
+      <div class="card-bezel-inner">
+        <table class="ledger" style="width: 100%;">
+          <thead>
+            <tr>
+              <th>Cause Category</th>
+              <th class="num-cell" style="width: 30%;">Accuracy Score</th>
+              <th class="num-cell" style="width: 30%;">Raw Correct Count</th>
+            </tr>
+          </thead>
+          <tbody id="accCategoryBody"></tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
+  <footer>
+    <span>reconciliation-agent · unified pipeline</span>
+    <span id="genTime"></span>
+  </footer>
+</div>
+
+<script id="results-data" type="application/json">
+{
+  "summary": {
+    "total_transactions": 70,
+    "exact_matches": 34,
+    "fuzzy_matches": 19,
+    "review_matches": 0,
+    "pending_bank": 0,
+    "exceptions": 17,
+    "match_rate": 0.7571,
+    "auto_match_rate": 0.7571,
+    "auto_plus_review_rate": 0.7571,
+    "classifier_mode": "gemini_fallback_to_rule_based",
+    "self_scored_accuracy": 0.9,
+    "self_score_is_in_distribution_only": true,
+    "ground_truth_available": true,
+    "ingest": {
+      "source_dir": "/Users/kaustubhh/Desktop/reconagent/data",
+      "dest_dir": "/Users/kaustubhh/Desktop/reconagent/data/.engine_ingest",
+      "adapted": false,
+      "schema": "engine",
+      "normalize_ids": false,
+      "money_validation": "OK",
+      "ledger_rows": 73,
+      "settlement_rows": 69,
+      "bank_rows": 63,
+      "column_map": {
+        "merchant_order_id": "order_id",
+        "customer_name": "customer",
+        "gross_amount": "amount"
+      }
+    },
+    "gemini_fallback_count": 5,
+    "escalation_attempted_count": 0,
+    "escalation_succeeded_count": 0,
+    "leg_summary": {
+      "A_posted": 66,
+      "A_failed": 4,
+      "B_posted": 53,
+      "B_pending": 0,
+      "B_review": 0,
+      "B_failed": 13
+    },
+    "rule_counts": {
+      "tolerance_fee_tds_round": 15,
+      "exact_standard_fee": 34,
+      "date_lag": 1,
+      "batch_n_to_1": 3
+    },
+    "severity_breakdown": {
+      "critical": 17
+    },
+    "policy": {
+      "sla_days": 7,
+      "as_of": "2026-08-05"
+    },
+    "generated_at": "2026-08-31T01:14:56.531790",
+    "dry_run": false
+  },
+  "exact_matches": [
+    {
+      "order_id": "ORD1001",
+      "amount": "39868.40",
+      "confidence": 1.0,
+      "note": null,
+      "matched_by_rule": "exact_standard_fee",
+      "auto_confirmed": true,
+      "leg_a": {
+        "leg": "A",
+        "status": "posted",
+        "rule_id": "exact_standard_fee",
+        "confidence": 1.0
+      },
+      "leg_b": {
+        "leg": "B",
+        "status": "posted",
+        "rule_id": "exact_standard_fee",
+        "confidence": 1.0,
+        "lag_days": 0
+      }
+    },
+    {
+      "order_id": "ORD1002",
+      "amount": "6713.55",
+      "confidence": 1.0,
+      "note": null,
+      "matched_by_rule": "exact_standard_fee",
+      "auto_confirmed": true,
+      "leg_a": {
+        "leg": "A",
+        "status": "posted",
+        "rule_id": "exact_standard_fee",
+        "confidence": 1.0
+      },
+      "leg_b": {
+        "leg": "B",
+        "status": "posted",
+        "rule_id": "exact_standard_fee",
+        "confidence": 1.0,
+        "lag_days": 0
+      }
+    },
+    {
+      "order_id": "ORD1003",
+      "amount": "26514.08",
+      "confidence": 1.0,
+      "note": null,
+      "matched_by_rule": "exact_standard_fee",
+      "auto_confirmed": true,
+      "leg_a": {
+        "leg": "A",
+        "status": "posted",
+        "rule_id": "exact_standard_fee",
+        "confidence": 1.0
+      },
+      "leg_b": {
+        "leg": "B",
+        "status": "posted",
+        "rule_id": "exact_standard_fee",
+        "confidence": 1.0,
+        "lag_days": 0
+      }
+    },
+    {
+      "order_id": "ORD1007",
+      "amount": "27017.04",
+      "confidence": 1.0,
+      "note": null,
+      "matched_by_rule": "exact_standard_fee",
+      "auto_confirmed": true,
+      "leg_a": {
+        "leg": "A",
+        "status": "posted",
+        "rule_id": "exact_standard_fee",
+        "confidence": 1.0
+      },
+      "leg_b": {
+        "leg": "B",
+        "status": "posted",
+        "rule_id": "exact_standard_fee",
+        "confidence": 1.0,
+        "lag_days": 0
+      }
+    },
+    {
+      "order_id": "ORD1009",
+      "amount": "29022.80",
+      "confidence": 1.0,
+      "note": null,
+      "matched_by_rule": "exact_standard_fee",
+      "auto_confirmed": true,
+      "leg_a": {
+        "leg": "A",
+        "status": "posted",
+        "rule_id": "exact_standard_fee",
+        "confidence": 1.0
+      },
+      "leg_b": {
+        "leg": "B",
+        "status": "posted",
+        "rule_id": "exact_standard_fee",
+        "confidence": 1.0,
+        "lag_days": 0
+      }
+    },
+    {
+      "order_id": "ORD1010",
+      "amount": "7538.02",
+      "confidence": 1.0,
+      "note": null,
+      "matched_by_rule": "exact_standard_fee",
+      "auto_confirmed": true,
+      "leg_a": {
+        "leg": "A",
+        "status": "posted",
+        "rule_id": "exact_standard_fee",
+        "confidence": 1.0
+      },
+      "leg_b": {
+        "leg": "B",
+        "status": "posted",
+        "rule_id": "exact_standard_fee",
+        "confidence": 1.0,
+        "lag_days": 0
+      }
+    },
+    {
+      "order_id": "ORD1012",
+      "amount": "28933.25",
+      "confidence": 1.0,
+      "note": null,
+      "matched_by_rule": "exact_standard_fee",
+      "auto_confirmed": true,
+      "leg_a": {
+        "leg": "A",
+        "status": "posted",
+        "rule_id": "exact_standard_fee",
+        "confidence": 1.0
+      },
+      "leg_b": {
+        "leg": "B",
+        "status": "posted",
+        "rule_id": "exact_standard_fee",
+        "confidence": 1.0,
+        "lag_days": 0
+      }
+    },
+    {
+      "order_id": "ORD1013",
+      "amount": "34431.73",
+      "confidence": 1.0,
+      "note": null,
+      "matched_by_rule": "exact_standard_fee",
+      "auto_confirmed": true,
+      "leg_a": {
+        "leg": "A",
+        "status": "posted",
+        "rule_id": "exact_standard_fee",
+        "confidence": 1.0
+      },
+      "leg_b": {
+        "leg": "B",
+        "status": "posted",
+        "rule_id": "exact_standard_fee",
+        "confidence": 1.0,
+        "lag_days": 0
+      }
+    },
+    {
+      "order_id": "ORD1016",
+      "amount": "39571.43",
+      "confidence": 1.0,
+      "note": null,
+      "matched_by_rule": "exact_standard_fee",
+      "auto_confirmed": true,
+      "leg_a": {
+        "leg": "A",
+        "status": "posted",
+        "rule_id": "exact_standard_fee",
+        "confidence": 1.0
+      },
+      "leg_b": {
+        "leg": "B",
+        "status": "posted",
+        "rule_id": "exact_standard_fee",
+        "confidence": 1.0,
+        "lag_days": 0
+      }
+    },
+    {
+      "order_id": "ORD1019",
+      "amount": "27493.43",
+      "confidence": 1.0,
+      "note": null,
+      "matched_by_rule": "exact_standard_fee",
+      "auto_confirmed": true,
+      "leg_a": {
+        "leg": "A",
+        "status": "posted",
+        "rule_id": "exact_standard_fee",
+        "confidence": 1.0
+      },
+      "leg_b": {
+        "leg": "B",
+        "status": "posted",
+        "rule_id": "exact_standard_fee",
+        "confidence": 1.0,
+        "lag_days": 0
+      }
+    },
+    {
+      "order_id": "ORD1022",
+      "amount": "1436.02",
+      "confidence": 1.0,
+      "note": null,
+      "matched_by_rule": "exact_standard_fee",
+      "auto_confirmed": true,
+      "leg_a": {
+        "leg": "A",
+        "status": "posted",
+        "rule_id": "exact_standard_fee",
+        "confidence": 1.0
+      },
+      "leg_b": {
+        "leg": "B",
+        "status": "posted",
+        "rule_id": "exact_standard_fee",
+        "confidence": 1.0,
+        "lag_days": 0
+      }
+    },
+    {
+      "order_id": "ORD1023",
+      "amount": "3659.19",
+      "confidence": 1.0,
+      "note": null,
+      "matched_by_rule": "exact_standard_fee",
+      "auto_confirmed": true,
+      "leg_a": {
+        "leg": "A",
+        "status": "posted",
+        "rule_id": "exact_standard_fee",
+        "confidence": 1.0
+      },
+      "leg_b": {
+        "leg": "B",
+        "status": "posted",
+        "rule_id": "exact_standard_fee",
+        "confidence": 1.0,
+        "lag_days": 0
+      }
+    },
+    {
+      "order_id": "ORD1025",
+      "amount": "40791.19",
+      "confidence": 1.0,
+      "note": null,
+      "matched_by_rule": "exact_standard_fee",
+      "auto_confirmed": true,
+      "leg_a": {
+        "leg": "A",
+        "status": "posted",
+        "rule_id": "exact_standard_fee",
+        "confidence": 1.0
+      },
+      "leg_b": {
+        "leg": "B",
+        "status": "posted",
+        "rule_id": "exact_standard_fee",
+        "confidence": 1.0,
+        "lag_days": 0
+      }
+    },
+    {
+      "order_id": "ORD1026",
+      "amount": "11091.21",
+      "confidence": 1.0,
+      "note": null,
+      "matched_by_rule": "exact_standard_fee",
+      "auto_confirmed": true,
+      "leg_a": {
+        "leg": "A",
+        "status": "posted",
+        "rule_id": "exact_standard_fee",
+        "confidence": 1.0
+      },
+      "leg_b": {
+        "leg": "B",
+        "status": "posted",
+        "rule_id": "exact_standard_fee",
+        "confidence": 1.0,
+        "lag_days": 0
+      }
+    },
+    {
+      "order_id": "ORD1027",
+      "amount": "6387.88",
+      "confidence": 1.0,
+      "note": null,
+      "matched_by_rule": "exact_standard_fee",
+      "auto_confirmed": true,
+      "leg_a": {
+        "leg": "A",
+        "status": "posted",
+        "rule_id": "exact_standard_fee",
+        "confidence": 1.0
+      },
+      "leg_b": {
+        "leg": "B",
+        "status": "posted",
+        "rule_id": "exact_standard_fee",
+        "confidence": 1.0,
+        "lag_days": 0
+      }
+    },
+    {
+      "order_id": "ORD1034",
+      "amount": "8665.22",
+      "confidence": 1.0,
+      "note": null,
+      "matched_by_rule": "exact_standard_fee",
+      "auto_confirmed": true,
+      "leg_a": {
+        "leg": "A",
+        "status": "posted",
+        "rule_id": "exact_standard_fee",
+        "confidence": 1.0
+      },
+      "leg_b": {
+        "leg": "B",
+        "status": "posted",
+        "rule_id": "exact_standard_fee",
+        "confidence": 1.0,
+        "lag_days": 0
+      }
+    },
+    {
+      "order_id": "ORD1041",
+      "amount": "43100.64",
+      "confidence": 1.0,
+      "note": null,
+      "matched_by_rule": "exact_standard_fee",
+      "auto_confirmed": true,
+      "leg_a": {
+        "leg": "A",
+        "status": "posted",
+        "rule_id": "exact_standard_fee",
+        "confidence": 1.0
+      },
+      "leg_b": {
+        "leg": "B",
+        "status": "posted",
+        "rule_id": "exact_standard_fee",
+        "confidence": 1.0,
+        "lag_days": 0
+      }
+    },
+    {
+      "order_id": "ORD1042",
+      "amount": "13703.50",
+      "confidence": 1.0,
+      "note": null,
+      "matched_by_rule": "exact_standard_fee",
+      "auto_confirmed": true,
+      "leg_a": {
+        "leg": "A",
+        "status": "posted",
+        "rule_id": "exact_standard_fee",
+        "confidence": 1.0
+      },
+      "leg_b": {
+        "leg": "B",
+        "status": "posted",
+        "rule_id": "exact_standard_fee",
+        "confidence": 1.0,
+        "lag_days": 0
+      }
+    },
+    {
+      "order_id": "ORD1043",
+      "amount": "14455.41",
+      "confidence": 1.0,
+      "note": null,
+      "matched_by_rule": "exact_standard_fee",
+      "auto_confirmed": true,
+      "leg_a": {
+        "leg": "A",
+        "status": "posted",
+        "rule_id": "exact_standard_fee",
+        "confidence": 1.0
+      },
+      "leg_b": {
+        "leg": "B",
+        "status": "posted",
+        "rule_id": "exact_standard_fee",
+        "confidence": 1.0,
+        "lag_days": 0
+      }
+    },
+    {
+      "order_id": "ORD1044",
+      "amount": "41412.73",
+      "confidence": 1.0,
+      "note": null,
+      "matched_by_rule": "exact_standard_fee",
+      "auto_confirmed": true,
+      "leg_a": {
+        "leg": "A",
+        "status": "posted",
+        "rule_id": "exact_standard_fee",
+        "confidence": 1.0
+      },
+      "leg_b": {
+        "leg": "B",
+        "status": "posted",
+        "rule_id": "exact_standard_fee",
+        "confidence": 1.0,
+        "lag_days": 0
+      }
+    },
+    {
+      "order_id": "ORD1045",
+      "amount": "43254.66",
+      "confidence": 1.0,
+      "note": null,
+      "matched_by_rule": "exact_standard_fee",
+      "auto_confirmed": true,
+      "leg_a": {
+        "leg": "A",
+        "status": "posted",
+        "rule_id": "exact_standard_fee",
+        "confidence": 1.0
+      },
+      "leg_b": {
+        "leg": "B",
+        "status": "posted",
+        "rule_id": "exact_standard_fee",
+        "confidence": 1.0,
+        "lag_days": 0
+      }
+    },
+    {
+      "order_id": "ORD1046",
+      "amount": "26979.06",
+      "confidence": 1.0,
+      "note": null,
+      "matched_by_rule": "exact_standard_fee",
+      "auto_confirmed": true,
+      "leg_a": {
+        "leg": "A",
+        "status": "posted",
+        "rule_id": "exact_standard_fee",
+        "confidence": 1.0
+      },
+      "leg_b": {
+        "leg": "B",
+        "status": "posted",
+        "rule_id": "exact_standard_fee",
+        "confidence": 1.0,
+        "lag_days": 0
+      }
+    },
+    {
+      "order_id": "ORD1047",
+      "amount": "42401.03",
+      "confidence": 1.0,
+      "note": null,
+      "matched_by_rule": "exact_standard_fee",
+      "auto_confirmed": true,
+      "leg_a": {
+        "leg": "A",
+        "status": "posted",
+        "rule_id": "exact_standard_fee",
+        "confidence": 1.0
+      },
+      "leg_b": {
+        "leg": "B",
+        "status": "posted",
+        "rule_id": "exact_standard_fee",
+        "confidence": 1.0,
+        "lag_days": 0
+      }
+    },
+    {
+      "order_id": "ORD1049",
+      "amount": "30302.81",
+      "confidence": 1.0,
+      "note": null,
+      "matched_by_rule": "exact_standard_fee",
+      "auto_confirmed": true,
+      "leg_a": {
+        "leg": "A",
+        "status": "posted",
+        "rule_id": "exact_standard_fee",
+        "confidence": 1.0
+      },
+      "leg_b": {
+        "leg": "B",
+        "status": "posted",
+        "rule_id": "exact_standard_fee",
+        "confidence": 1.0,
+        "lag_days": 0
+      }
+    },
+    {
+      "order_id": "ORD1050",
+      "amount": "18112.47",
+      "confidence": 1.0,
+      "note": null,
+      "matched_by_rule": "exact_standard_fee",
+      "auto_confirmed": true,
+      "leg_a": {
+        "leg": "A",
+        "status": "posted",
+        "rule_id": "exact_standard_fee",
+        "confidence": 1.0
+      },
+      "leg_b": {
+        "leg": "B",
+        "status": "posted",
+        "rule_id": "exact_standard_fee",
+        "confidence": 1.0,
+        "lag_days": 0
+      }
+    },
+    {
+      "order_id": "ORD1051",
+      "amount": "41841.32",
+      "confidence": 1.0,
+      "note": null,
+      "matched_by_rule": "exact_standard_fee",
+      "auto_confirmed": true,
+      "leg_a": {
+        "leg": "A",
+        "status": "posted",
+        "rule_id": "exact_standard_fee",
+        "confidence": 1.0
+      },
+      "leg_b": {
+        "leg": "B",
+        "status": "posted",
+        "rule_id": "exact_standard_fee",
+        "confidence": 1.0,
+        "lag_days": 0
+      }
+    },
+    {
+      "order_id": "ORD1052",
+      "amount": "28141.59",
+      "confidence": 1.0,
+      "note": null,
+      "matched_by_rule": "exact_standard_fee",
+      "auto_confirmed": true,
+      "leg_a": {
+        "leg": "A",
+        "status": "posted",
+        "rule_id": "exact_standard_fee",
+        "confidence": 1.0
+      },
+      "leg_b": {
+        "leg": "B",
+        "status": "posted",
+        "rule_id": "exact_standard_fee",
+        "confidence": 1.0,
+        "lag_days": 0
+      }
+    },
+    {
+      "order_id": "ORD1056",
+      "amount": "5109.60",
+      "confidence": 1.0,
+      "note": null,
+      "matched_by_rule": "exact_standard_fee",
+      "auto_confirmed": true,
+      "leg_a": {
+        "leg": "A",
+        "status": "posted",
+        "rule_id": "exact_standard_fee",
+        "confidence": 1.0
+      },
+      "leg_b": {
+        "leg": "B",
+        "status": "posted",
+        "rule_id": "exact_standard_fee",
+        "confidence": 1.0,
+        "lag_days": 0
+      }
+    },
+    {
+      "order_id": "ORD1058",
+      "amount": "27414.93",
+      "confidence": 1.0,
+      "note": null,
+      "matched_by_rule": "exact_standard_fee",
+      "auto_confirmed": true,
+      "leg_a": {
+        "leg": "A",
+        "status": "posted",
+        "rule_id": "exact_standard_fee",
+        "confidence": 1.0
+      },
+      "leg_b": {
+        "leg": "B",
+        "status": "posted",
+        "rule_id": "exact_standard_fee",
+        "confidence": 1.0,
+        "lag_days": 0
+      }
+    },
+    {
+      "order_id": "ORD1059",
+      "amount": "28723.59",
+      "confidence": 1.0,
+      "note": null,
+      "matched_by_rule": "exact_standard_fee",
+      "auto_confirmed": true,
+      "leg_a": {
+        "leg": "A",
+        "status": "posted",
+        "rule_id": "exact_standard_fee",
+        "confidence": 1.0
+      },
+      "leg_b": {
+        "leg": "B",
+        "status": "posted",
+        "rule_id": "exact_standard_fee",
+        "confidence": 1.0,
+        "lag_days": 0
+      }
+    },
+    {
+      "order_id": "ORD1066",
+      "amount": "16930.11",
+      "confidence": 1.0,
+      "note": null,
+      "matched_by_rule": "exact_standard_fee",
+      "auto_confirmed": true,
+      "leg_a": {
+        "leg": "A",
+        "status": "posted",
+        "rule_id": "exact_standard_fee",
+        "confidence": 1.0
+      },
+      "leg_b": {
+        "leg": "B",
+        "status": "posted",
+        "rule_id": "exact_standard_fee",
+        "confidence": 1.0,
+        "lag_days": 0
+      }
+    },
+    {
+      "order_id": "ORD1067",
+      "amount": "2361.38",
+      "confidence": 1.0,
+      "note": null,
+      "matched_by_rule": "exact_standard_fee",
+      "auto_confirmed": true,
+      "leg_a": {
+        "leg": "A",
+        "status": "posted",
+        "rule_id": "exact_standard_fee",
+        "confidence": 1.0
+      },
+      "leg_b": {
+        "leg": "B",
+        "status": "posted",
+        "rule_id": "exact_standard_fee",
+        "confidence": 1.0,
+        "lag_days": 0
+      }
+    },
+    {
+      "order_id": "ORD1068",
+      "amount": "9848.41",
+      "confidence": 1.0,
+      "note": null,
+      "matched_by_rule": "exact_standard_fee",
+      "auto_confirmed": true,
+      "leg_a": {
+        "leg": "A",
+        "status": "posted",
+        "rule_id": "exact_standard_fee",
+        "confidence": 1.0
+      },
+      "leg_b": {
+        "leg": "B",
+        "status": "posted",
+        "rule_id": "exact_standard_fee",
+        "confidence": 1.0,
+        "lag_days": 0
+      }
+    },
+    {
+      "order_id": "ORD1069",
+      "amount": "35215.17",
+      "confidence": 1.0,
+      "note": null,
+      "matched_by_rule": "exact_standard_fee",
+      "auto_confirmed": true,
+      "leg_a": {
+        "leg": "A",
+        "status": "posted",
+        "rule_id": "exact_standard_fee",
+        "confidence": 1.0
+      },
+      "leg_b": {
+        "leg": "B",
+        "status": "posted",
+        "rule_id": "exact_standard_fee",
+        "confidence": 1.0,
+        "lag_days": 0
+      }
+    }
+  ],
+  "fuzzy_matches": [
+    {
+      "order_id": "ORD1000",
+      "amount": "41134.56",
+      "confidence": 0.9,
+      "note": "Matched after allowing for: rounding_diff (+0.60)",
+      "matched_by_rule": "tolerance_fee_tds_round",
+      "auto_confirmed": true,
+      "leg_a": {
+        "leg": "A",
+        "status": "posted",
+        "rule_id": "exact_standard_fee",
+        "confidence": 1.0
+      },
+      "leg_b": {
+        "leg": "B",
+        "status": "posted",
+        "rule_id": "tolerance_fee_tds_round",
+        "confidence": 0.9,
+        "auto_confirm": true,
+        "reasons": [
+          "rounding_diff (+0.60)"
+        ]
+      }
+    },
+    {
+      "order_id": "ORD1008",
+      "amount": "38804.70",
+      "confidence": 0.9,
+      "note": "Matched after allowing for: settlement_to_bank_lag (5d)",
+      "matched_by_rule": "date_lag",
+      "auto_confirmed": true,
+      "leg_a": {
+        "leg": "A",
+        "status": "posted",
+        "rule_id": "exact_standard_fee",
+        "confidence": 1.0
+      },
+      "leg_b": {
+        "leg": "B",
+        "status": "posted",
+        "rule_id": "date_lag",
+        "confidence": 0.9,
+        "auto_confirm": true,
+        "reasons": [
+          "settlement_to_bank_lag (5d)"
+        ],
+        "lag_days": 5
+      }
+    },
+    {
+      "order_id": "ORD1011",
+      "amount": "34407.32",
+      "confidence": 0.9,
+      "note": "Matched after allowing for: fee_variance (2.50%)",
+      "matched_by_rule": "tolerance_fee_tds_round",
+      "auto_confirmed": true,
+      "leg_a": {
+        "leg": "A",
+        "status": "posted",
+        "rule_id": "tolerance_fee_tds_round",
+        "confidence": 0.9,
+        "auto_confirm": true,
+        "reasons": [
+          "fee_variance (2.50%)"
+        ]
+      },
+      "leg_b": {
+        "leg": "B",
+        "status": "posted",
+        "rule_id": "exact_standard_fee",
+        "confidence": 1.0,
+        "lag_days": 0
+      }
+    },
+    {
+      "order_id": "ORD1014",
+      "amount": "14924.94",
+      "confidence": 0.9,
+      "note": "Matched after allowing for: rounding_diff (+0.40)",
+      "matched_by_rule": "tolerance_fee_tds_round",
+      "auto_confirmed": true,
+      "leg_a": {
+        "leg": "A",
+        "status": "posted",
+        "rule_id": "exact_standard_fee",
+        "confidence": 1.0
+      },
+      "leg_b": {
+        "leg": "B",
+        "status": "posted",
+        "rule_id": "tolerance_fee_tds_round",
+        "confidence": 0.9,
+        "auto_confirm": true,
+        "reasons": [
+          "rounding_diff (+0.40)"
+        ]
+      }
+    },
+    {
+      "order_id": "ORD1015",
+      "amount": "36401.48",
+      "confidence": 0.9,
+      "note": "Matched after allowing for: tds_withheld (7.28)",
+      "matched_by_rule": "tolerance_fee_tds_round",
+      "auto_confirmed": true,
+      "leg_a": {
+        "leg": "A",
+        "status": "posted",
+        "rule_id": "tolerance_fee_tds_round",
+        "confidence": 0.9,
+        "auto_confirm": true,
+        "reasons": [
+          "tds_withheld (7.28)"
+        ]
+      },
+      "leg_b": {
+        "leg": "B",
+        "status": "posted",
+        "rule_id": "exact_standard_fee",
+        "confidence": 1.0,
+        "lag_days": 0
+      }
+    },
+    {
+      "order_id": "ORD1017",
+      "amount": "22126.58",
+      "confidence": 0.9,
+      "note": "Matched after allowing for: tds_withheld (4.43)",
+      "matched_by_rule": "tolerance_fee_tds_round",
+      "auto_confirmed": true,
+      "leg_a": {
+        "leg": "A",
+        "status": "posted",
+        "rule_id": "tolerance_fee_tds_round",
+        "confidence": 0.9,
+        "auto_confirm": true,
+        "reasons": [
+          "tds_withheld (4.43)"
+        ]
+      },
+      "leg_b": {
+        "leg": "B",
+        "status": "posted",
+        "rule_id": "exact_standard_fee",
+        "confidence": 1.0,
+        "lag_days": 0
+      }
+    },
+    {
+      "order_id": "ORD1029",
+      "amount": "29824.73",
+      "confidence": 0.9,
+      "note": "Matched after allowing for: rounding_diff (+0.60)",
+      "matched_by_rule": "tolerance_fee_tds_round",
+      "auto_confirmed": true,
+      "leg_a": {
+        "leg": "A",
+        "status": "posted",
+        "rule_id": "exact_standard_fee",
+        "confidence": 1.0
+      },
+      "leg_b": {
+        "leg": "B",
+        "status": "posted",
+        "rule_id": "tolerance_fee_tds_round",
+        "confidence": 0.9,
+        "auto_confirm": true,
+        "reasons": [
+          "rounding_diff (+0.60)"
+        ]
+      }
+    },
+    {
+      "order_id": "ORD1032",
+      "amount": "8964.30",
+      "confidence": 0.9,
+      "note": "Matched after allowing for: tds_withheld (1.79)",
+      "matched_by_rule": "tolerance_fee_tds_round",
+      "auto_confirmed": true,
+      "leg_a": {
+        "leg": "A",
+        "status": "posted",
+        "rule_id": "tolerance_fee_tds_round",
+        "confidence": 0.9,
+        "auto_confirm": true,
+        "reasons": [
+          "tds_withheld (1.79)"
+        ]
+      },
+      "leg_b": {
+        "leg": "B",
+        "status": "posted",
+        "rule_id": "exact_standard_fee",
+        "confidence": 1.0,
+        "lag_days": 0
+      }
+    },
+    {
+      "order_id": "ORD1035",
+      "amount": "41585.32",
+      "confidence": 0.9,
+      "note": "Matched after allowing for: tds_withheld (8.32)",
+      "matched_by_rule": "tolerance_fee_tds_round",
+      "auto_confirmed": true,
+      "leg_a": {
+        "leg": "A",
+        "status": "posted",
+        "rule_id": "tolerance_fee_tds_round",
+        "confidence": 0.9,
+        "auto_confirm": true,
+        "reasons": [
+          "tds_withheld (8.32)"
+        ]
+      },
+      "leg_b": {
+        "leg": "B",
+        "status": "posted",
+        "rule_id": "exact_standard_fee",
+        "confidence": 1.0,
+        "lag_days": 0
+      }
+    },
+    {
+      "order_id": "ORD1037",
+      "amount": "38266.96",
+      "confidence": 0.9,
+      "note": "Matched after allowing for: rounding_diff (+0.60)",
+      "matched_by_rule": "tolerance_fee_tds_round",
+      "auto_confirmed": true,
+      "leg_a": {
+        "leg": "A",
+        "status": "posted",
+        "rule_id": "exact_standard_fee",
+        "confidence": 1.0
+      },
+      "leg_b": {
+        "leg": "B",
+        "status": "posted",
+        "rule_id": "tolerance_fee_tds_round",
+        "confidence": 0.9,
+        "auto_confirm": true,
+        "reasons": [
+          "rounding_diff (+0.60)"
+        ]
+      }
+    },
+    {
+      "order_id": "ORD1039",
+      "amount": "595.91",
+      "confidence": 0.9,
+      "note": "Matched after allowing for: tds_withheld (0.12)",
+      "matched_by_rule": "tolerance_fee_tds_round",
+      "auto_confirmed": true,
+      "leg_a": {
+        "leg": "A",
+        "status": "posted",
+        "rule_id": "tolerance_fee_tds_round",
+        "confidence": 0.9,
+        "auto_confirm": true,
+        "reasons": [
+          "tds_withheld (0.12)"
+        ]
+      },
+      "leg_b": {
+        "leg": "B",
+        "status": "posted",
+        "rule_id": "exact_standard_fee",
+        "confidence": 1.0,
+        "lag_days": 0
+      }
+    },
+    {
+      "order_id": "ORD1048",
+      "amount": "4148.26",
+      "confidence": 0.9,
+      "note": "Matched after allowing for: rounding_diff (+0.40)",
+      "matched_by_rule": "tolerance_fee_tds_round",
+      "auto_confirmed": true,
+      "leg_a": {
+        "leg": "A",
+        "status": "posted",
+        "rule_id": "exact_standard_fee",
+        "confidence": 1.0
+      },
+      "leg_b": {
+        "leg": "B",
+        "status": "posted",
+        "rule_id": "tolerance_fee_tds_round",
+        "confidence": 0.9,
+        "auto_confirm": true,
+        "reasons": [
+          "rounding_diff (+0.40)"
+        ]
+      }
+    },
+    {
+      "order_id": "ORD1054",
+      "amount": "39627.53",
+      "confidence": 0.9,
+      "note": "Matched after allowing for: rounding_diff (-0.30)",
+      "matched_by_rule": "tolerance_fee_tds_round",
+      "auto_confirmed": true,
+      "leg_a": {
+        "leg": "A",
+        "status": "posted",
+        "rule_id": "exact_standard_fee",
+        "confidence": 1.0
+      },
+      "leg_b": {
+        "leg": "B",
+        "status": "posted",
+        "rule_id": "tolerance_fee_tds_round",
+        "confidence": 0.9,
+        "auto_confirm": true,
+        "reasons": [
+          "rounding_diff (-0.30)"
+        ]
+      }
+    },
+    {
+      "order_id": "ORD1055",
+      "amount": "37601.65",
+      "confidence": 0.9,
+      "note": "Matched after allowing for: rounding_diff (+0.40)",
+      "matched_by_rule": "tolerance_fee_tds_round",
+      "auto_confirmed": true,
+      "leg_a": {
+        "leg": "A",
+        "status": "posted",
+        "rule_id": "exact_standard_fee",
+        "confidence": 1.0
+      },
+      "leg_b": {
+        "leg": "B",
+        "status": "posted",
+        "rule_id": "tolerance_fee_tds_round",
+        "confidence": 0.9,
+        "auto_confirm": true,
+        "reasons": [
+          "rounding_diff (+0.40)"
+        ]
+      }
+    },
+    {
+      "order_id": "ORD1061",
+      "amount": "40787.47",
+      "confidence": 0.9,
+      "note": "Matched after allowing for: rounding_diff (+0.60)",
+      "matched_by_rule": "tolerance_fee_tds_round",
+      "auto_confirmed": true,
+      "leg_a": {
+        "leg": "A",
+        "status": "posted",
+        "rule_id": "exact_standard_fee",
+        "confidence": 1.0
+      },
+      "leg_b": {
+        "leg": "B",
+        "status": "posted",
+        "rule_id": "tolerance_fee_tds_round",
+        "confidence": 0.9,
+        "auto_confirm": true,
+        "reasons": [
+          "rounding_diff (+0.60)"
+        ]
+      }
+    },
+    {
+      "order_id": "ORD1062",
+      "amount": "12812.27",
+      "confidence": 0.9,
+      "note": "Matched after allowing for: tds_withheld (2.56)",
+      "matched_by_rule": "tolerance_fee_tds_round",
+      "auto_confirmed": true,
+      "leg_a": {
+        "leg": "A",
+        "status": "posted",
+        "rule_id": "tolerance_fee_tds_round",
+        "confidence": 0.9,
+        "auto_confirm": true,
+        "reasons": [
+          "tds_withheld (2.56)"
+        ]
+      },
+      "leg_b": {
+        "leg": "B",
+        "status": "posted",
+        "rule_id": "exact_standard_fee",
+        "confidence": 1.0,
+        "lag_days": 0
+      }
+    },
+    {
+      "order_id": "ORD1033",
+      "amount": "1602.99",
+      "confidence": 0.9,
+      "note": "Matched after allowing for: n_to_1 batch (3 settlements \u2192 1 credit)",
+      "matched_by_rule": "batch_n_to_1",
+      "auto_confirmed": true,
+      "leg_a": {
+        "leg": "A",
+        "status": "posted",
+        "rule_id": "exact_standard_fee",
+        "confidence": 1.0
+      },
+      "leg_b": {
+        "leg": "B",
+        "status": "posted",
+        "rule_id": "batch_n_to_1",
+        "confidence": 0.9,
+        "auto_confirm": true,
+        "batch_id": "BATCH20260700",
+        "batch_size": 3,
+        "reasons": [
+          "n_to_1 batch (3 settlements \u2192 1 credit)"
+        ],
+        "bank": [
+          {
+            "reference": "BATCH20260700",
+            "credit_date": "2026-07-28",
+            "credit_amount": "66102.99"
+          }
+        ]
+      }
+    },
+    {
+      "order_id": "ORD1060",
+      "amount": "30310.87",
+      "confidence": 0.9,
+      "note": "Matched after allowing for: n_to_1 batch (3 settlements \u2192 1 credit)",
+      "matched_by_rule": "batch_n_to_1",
+      "auto_confirmed": true,
+      "leg_a": {
+        "leg": "A",
+        "status": "posted",
+        "rule_id": "exact_standard_fee",
+        "confidence": 1.0
+      },
+      "leg_b": {
+        "leg": "B",
+        "status": "posted",
+        "rule_id": "batch_n_to_1",
+        "confidence": 0.9,
+        "auto_confirm": true,
+        "batch_id": "BATCH20260700",
+        "batch_size": 3,
+        "reasons": [
+          "n_to_1 batch (3 settlements \u2192 1 credit)"
+        ],
+        "bank": [
+          {
+            "reference": "BATCH20260700",
+            "credit_date": "2026-07-28",
+            "credit_amount": "66102.99"
+          }
+        ]
+      }
+    },
+    {
+      "order_id": "ORD1024",
+      "amount": "35538.17",
+      "confidence": 0.9,
+      "note": "Matched after allowing for: n_to_1 batch (3 settlements \u2192 1 credit)",
+      "matched_by_rule": "batch_n_to_1",
+      "auto_confirmed": true,
+      "leg_a": {
+        "leg": "A",
+        "status": "posted",
+        "rule_id": "exact_standard_fee",
+        "confidence": 1.0
+      },
+      "leg_b": {
+        "leg": "B",
+        "status": "posted",
+        "rule_id": "batch_n_to_1",
+        "confidence": 0.9,
+        "auto_confirm": true,
+        "batch_id": "BATCH20260700",
+        "batch_size": 3,
+        "reasons": [
+          "n_to_1 batch (3 settlements \u2192 1 credit)"
+        ],
+        "bank": [
+          {
+            "reference": "BATCH20260700",
+            "credit_date": "2026-07-28",
+            "credit_amount": "66102.99"
+          }
+        ]
+      }
+    }
+  ],
+  "review_matches": [],
+  "pending": [],
+  "exceptions": [
+    {
+      "order_id": "ORD1004",
+      "amount": 44881.0,
+      "cause": "duplicate_credit",
+      "confidence": 1.0,
+      "reasoning": "The bank statement contains two identical credit entries of 43983.38 on 2026-07-10 for order ORD1004, causing a cardinality break.",
+      "actually_used": "gemini_api",
+      "symptoms": [
+        "cardinality_break"
+      ],
+      "severity": "critical",
+      "age_days": 26,
+      "leg_a": {
+        "leg": "A",
+        "status": "posted",
+        "rule_id": "exact_standard_fee",
+        "confidence": 1.0
+      },
+      "leg_b": {
+        "leg": "B",
+        "status": "cardinality_break",
+        "subtype": "duplicate_bank_credit",
+        "note": "2 identical bank credits"
+      },
+      "display_cause": "Duplicate bank credit",
+      "evidence_teaser": "2 identical bank credits of \u20b943,983.38 on this reference.",
+      "evidence_facts": [
+        "2 identical bank credits of \u20b943,983.38 on this reference."
+      ],
+      "evidence_action": "Confirm with the bank whether one credit should be reversed."
+    },
+    {
+      "order_id": "ORD1065",
+      "amount": 42554.77,
+      "cause": "missing_settlement",
+      "confidence": 0.85,
+      "reasoning": "ORD1065 exists in the ledger but never appears in settlement or the bank statement \u2014 the payment likely never actually settled.",
+      "actually_used": "rule_based_fallback",
+      "symptoms": [
+        "one_sided_no_settlement"
+      ],
+      "severity": "critical",
+      "age_days": 33,
+      "leg_a": {
+        "leg": "A",
+        "status": "missing_settlement"
+      },
+      "leg_b": null,
+      "display_cause": "Missing settlement",
+      "evidence_teaser": "ORD1065 is in the ledger but has no settlement row.",
+      "evidence_facts": [
+        "ORD1065 is in the ledger but has no settlement row."
+      ],
+      "evidence_action": "Confirm whether the payment actually captured at the gateway."
+    },
+    {
+      "order_id": "ORD1057",
+      "amount": 40092.22,
+      "cause": "duplicate_credit",
+      "confidence": 1.0,
+      "reasoning": "The bank statement contains two identical credit entries of 39,290.38 INR for order ORD1057 on 2026-07-06, while the ledger and settlement only record one corresponding entry.",
+      "actually_used": "gemini_api",
+      "symptoms": [
+        "cardinality_break"
+      ],
+      "severity": "critical",
+      "age_days": 30,
+      "leg_a": {
+        "leg": "A",
+        "status": "posted",
+        "rule_id": "exact_standard_fee",
+        "confidence": 1.0
+      },
+      "leg_b": {
+        "leg": "B",
+        "status": "cardinality_break",
+        "subtype": "duplicate_bank_credit",
+        "note": "2 identical bank credits"
+      },
+      "display_cause": "Duplicate bank credit",
+      "evidence_teaser": "2 identical bank credits of \u20b939,290.38 on this reference.",
+      "evidence_facts": [
+        "2 identical bank credits of \u20b939,290.38 on this reference."
+      ],
+      "evidence_action": "Confirm with the bank whether one credit should be reversed."
+    },
+    {
+      "order_id": "ORD1030",
+      "amount": 38940.74,
+      "cause": "wrong_transaction",
+      "confidence": 0.78,
+      "reasoning": "ORD1030 has no safe direct link, but a different transaction is the unique amount/date or near-ID candidate (['ORD1000', 'ORD1010', 'ORD1031', 'ORD1031', 'ORD1032']) \u2014 do not auto-link it.",
+      "actually_used": "rule_based_fallback",
+      "symptoms": [
+        "one_sided_no_bank_past_sla",
+        "wrong_transaction_candidate"
+      ],
+      "severity": "critical",
+      "age_days": 0,
+      "leg_a": {
+        "leg": "A",
+        "status": "posted",
+        "rule_id": "exact_standard_fee",
+        "confidence": 1.0
+      },
+      "leg_b": {
+        "leg": "B",
+        "status": "aged_missing",
+        "rule_id": null,
+        "note": "bank credit missing 0d past SLA 7d",
+        "age_days": 0
+      },
+      "candidate_bank_refs": [
+        "ORD1000",
+        "ORD1010",
+        "ORD1031",
+        "ORD1031",
+        "ORD1032"
+      ],
+      "display_cause": "Possible reference mismatch",
+      "evidence_teaser": "Bank credit missing past SLA. Similar credit found elsewhere \u2014 not auto-linked.",
+      "evidence_facts": [
+        "Expected bank credit not found under ORD1030.",
+        "Age is 0 day(s); SLA window is 7 days.",
+        "Settled net \u20b938,161.93 has no matching credit on this reference.",
+        "A similar credit appears under ORD1000, ORD1010, ORD1031 and was not auto-linked."
+      ],
+      "evidence_action": "Verify the UTR and bank reference before clearing."
+    },
+    {
+      "order_id": "ORD1040",
+      "amount": 35438.26,
+      "cause": "duplicate_credit",
+      "confidence": 1.0,
+      "reasoning": "The bank statement contains two identical credit entries of 34729.49 INR on 2026-07-28 for order ORD1040, while there is only one corresponding ledger and settlement entry.",
+      "actually_used": "gemini_api",
+      "symptoms": [
+        "cardinality_break"
+      ],
+      "severity": "critical",
+      "age_days": 8,
+      "leg_a": {
+        "leg": "A",
+        "status": "posted",
+        "rule_id": "exact_standard_fee",
+        "confidence": 1.0
+      },
+      "leg_b": {
+        "leg": "B",
+        "status": "cardinality_break",
+        "subtype": "duplicate_bank_credit",
+        "note": "2 identical bank credits"
+      },
+      "display_cause": "Duplicate bank credit",
+      "evidence_teaser": "2 identical bank credits of \u20b934,729.49 on this reference.",
+      "evidence_facts": [
+        "2 identical bank credits of \u20b934,729.49 on this reference."
+      ],
+      "evidence_action": "Confirm with the bank whether one credit should be reversed."
+    },
+    {
+      "order_id": "ORD1005",
+      "amount": 34132.31,
+      "cause": "duplicate_entry",
+      "confidence": 0.98,
+      "reasoning": "The order ORD1005 appears twice in the ledger with an amount of 34132.31, while there is only a single matching settlement and bank entry of 33449.66.",
+      "actually_used": "gemini_api",
+      "symptoms": [
+        "ledger_dupe"
+      ],
+      "severity": "critical",
+      "age_days": 33,
+      "leg_a": {
+        "leg": "A",
+        "status": "posted",
+        "rule_id": "exact_standard_fee",
+        "confidence": 1.0
+      },
+      "leg_b": {
+        "leg": "B",
+        "status": "posted",
+        "rule_id": "exact_standard_fee",
+        "confidence": 1.0,
+        "lag_days": 0
+      },
+      "display_cause": "Duplicate ledger entry",
+      "evidence_teaser": "This order ID appears more than once in the ledger.",
+      "evidence_facts": [
+        "This order ID appears more than once in the ledger."
+      ],
+      "evidence_action": "Remove or merge the duplicate ledger entry."
+    },
+    {
+      "order_id": "ORD1031",
+      "amount": 32905.5,
+      "cause": "duplicate_credit",
+      "confidence": 0.95,
+      "reasoning": "ORD1031 has duplicate credit rows (2x) in the bank statement with identical amounts of \u20b932247.39 \u2014 looks like duplicate credit payouts.",
+      "actually_used": "rule_based_fallback",
+      "symptoms": [
+        "cardinality_break"
+      ],
+      "severity": "critical",
+      "age_days": 22,
+      "leg_a": {
+        "leg": "A",
+        "status": "posted",
+        "rule_id": "exact_standard_fee",
+        "confidence": 1.0
+      },
+      "leg_b": {
+        "leg": "B",
+        "status": "cardinality_break",
+        "subtype": "duplicate_bank_credit",
+        "note": "2 identical bank credits"
+      },
+      "display_cause": "Duplicate bank credit",
+      "evidence_teaser": "2 identical bank credits of \u20b932,247.39 on this reference.",
+      "evidence_facts": [
+        "2 identical bank credits of \u20b932,247.39 on this reference."
+      ],
+      "evidence_action": "Confirm with the bank whether one credit should be reversed."
+    },
+    {
+      "order_id": "ORD1018",
+      "amount": 29858.91,
+      "cause": "aged_missing_bank",
+      "confidence": 0.95,
+      "reasoning": "The settlement entry for ORD1018 exists with a net amount of 29261.73 INR on 2026-08-01, but the corresponding bank credit is completely missing and is 4 days past the 7-day SLA window.",
+      "actually_used": "gemini_api",
+      "symptoms": [
+        "one_sided_no_bank_past_sla",
+        "wrong_transaction_candidate"
+      ],
+      "severity": "critical",
+      "age_days": 4,
+      "leg_a": {
+        "leg": "A",
+        "status": "posted",
+        "rule_id": "exact_standard_fee",
+        "confidence": 1.0
+      },
+      "leg_b": {
+        "leg": "B",
+        "status": "aged_missing",
+        "rule_id": null,
+        "note": "bank credit missing 4d past SLA 7d",
+        "age_days": 4
+      },
+      "candidate_bank_refs": [
+        "ORD1008",
+        "ORD1010",
+        "ORD1011",
+        "ORD1012",
+        "ORD1013"
+      ],
+      "display_cause": "Missing bank credit (past SLA)",
+      "evidence_teaser": "Bank credit still missing after the SLA window.",
+      "evidence_facts": [
+        "Expected bank credit not found under ORD1018.",
+        "Age is 4 day(s); SLA window is 7 days.",
+        "Settled net \u20b929,261.73 has no matching credit on this reference.",
+        "A similar credit appears under ORD1008, ORD1010, ORD1011 and was not auto-linked."
+      ],
+      "evidence_action": "Verify the UTR and bank reference before clearing."
+    },
+    {
+      "order_id": "ORD1036",
+      "amount": 29520.45,
+      "cause": "aged_missing_bank",
+      "confidence": 0.95,
+      "reasoning": "The ledger and settlement records for ORD1036 (gross amount 29520.45 INR) exist, but the corresponding bank credit is missing past the SLA window.",
+      "actually_used": "gemini_api",
+      "symptoms": [
+        "one_sided_no_bank_past_sla",
+        "wrong_transaction_candidate"
+      ],
+      "severity": "critical",
+      "age_days": 0,
+      "leg_a": {
+        "leg": "A",
+        "status": "posted",
+        "rule_id": "exact_standard_fee",
+        "confidence": 1.0
+      },
+      "leg_b": {
+        "leg": "B",
+        "status": "aged_missing",
+        "rule_id": null,
+        "note": "bank credit missing 0d past SLA 7d",
+        "age_days": 0
+      },
+      "candidate_bank_refs": [
+        "ORD1016",
+        "ORD1026",
+        "ORD1031",
+        "ORD1031",
+        "ORD1032"
+      ],
+      "display_cause": "Missing bank credit (past SLA)",
+      "evidence_teaser": "Bank credit still missing after the SLA window.",
+      "evidence_facts": [
+        "Expected bank credit not found under ORD1036.",
+        "Age is 0 day(s); SLA window is 7 days.",
+        "Settled net \u20b928,930.04 has no matching credit on this reference.",
+        "A similar credit appears under ORD1016, ORD1026, ORD1031 and was not auto-linked."
+      ],
+      "evidence_action": "Verify the UTR and bank reference before clearing."
+    },
+    {
+      "order_id": "ORD1028",
+      "amount": 21547.3,
+      "cause": "wrong_transaction",
+      "confidence": 0.78,
+      "reasoning": "ORD1028 has no safe direct link, but a different transaction is the unique amount/date or near-ID candidate (['ORD1008', 'ORD1021', 'ORD1022', 'ORD1023', 'ORD1025']) \u2014 do not auto-link it.",
+      "actually_used": "rule_based_fallback",
+      "symptoms": [
+        "one_sided_no_bank_past_sla",
+        "wrong_transaction_candidate"
+      ],
+      "severity": "critical",
+      "age_days": 0,
+      "leg_a": {
+        "leg": "A",
+        "status": "posted",
+        "rule_id": "exact_standard_fee",
+        "confidence": 1.0
+      },
+      "leg_b": {
+        "leg": "B",
+        "status": "aged_missing",
+        "rule_id": null,
+        "note": "bank credit missing 0d past SLA 7d",
+        "age_days": 0
+      },
+      "candidate_bank_refs": [
+        "ORD1008",
+        "ORD1021",
+        "ORD1022",
+        "ORD1023",
+        "ORD1025"
+      ],
+      "display_cause": "Possible reference mismatch",
+      "evidence_teaser": "Bank credit missing past SLA. Similar credit found elsewhere \u2014 not auto-linked.",
+      "evidence_facts": [
+        "Expected bank credit not found under ORD1028.",
+        "Age is 0 day(s); SLA window is 7 days.",
+        "Settled net \u20b921,116.35 has no matching credit on this reference.",
+        "A similar credit appears under ORD1008, ORD1021, ORD1022 and was not auto-linked."
+      ],
+      "evidence_action": "Verify the UTR and bank reference before clearing."
+    },
+    {
+      "order_id": "ORD1064",
+      "amount": 20161.68,
+      "cause": "wrong_transaction",
+      "confidence": 0.78,
+      "reasoning": "ORD1064 has no safe direct link, but a different transaction is the unique amount/date or near-ID candidate (['ORD1004', 'ORD1004', 'ORD1014', 'ORD1034', 'ORD1044']) \u2014 do not auto-link it.",
+      "actually_used": "rule_based_fallback",
+      "symptoms": [
+        "one_sided_no_bank_past_sla",
+        "wrong_transaction_candidate"
+      ],
+      "severity": "critical",
+      "age_days": 0,
+      "leg_a": {
+        "leg": "A",
+        "status": "posted",
+        "rule_id": "exact_standard_fee",
+        "confidence": 1.0
+      },
+      "leg_b": {
+        "leg": "B",
+        "status": "aged_missing",
+        "rule_id": null,
+        "note": "bank credit missing 0d past SLA 7d",
+        "age_days": 0
+      },
+      "candidate_bank_refs": [
+        "ORD1004",
+        "ORD1004",
+        "ORD1014",
+        "ORD1034",
+        "ORD1044"
+      ],
+      "display_cause": "Possible reference mismatch",
+      "evidence_teaser": "Bank credit missing past SLA. Similar credit found elsewhere \u2014 not auto-linked.",
+      "evidence_facts": [
+        "Expected bank credit not found under ORD1064.",
+        "Age is 0 day(s); SLA window is 7 days.",
+        "Settled net \u20b919,758.45 has no matching credit on this reference.",
+        "A similar credit appears under ORD1004, ORD1004, ORD1014 and was not auto-linked."
+      ],
+      "evidence_action": "Verify the UTR and bank reference before clearing."
+    },
+    {
+      "order_id": "ORD1020",
+      "amount": 14371.37,
+      "cause": "aged_missing_bank",
+      "confidence": 0.95,
+      "reasoning": "The settlement for ORD1020 exists with a net amount of 14,083.94 INR, but the corresponding bank credit remains missing 4 days past the 7-day SLA window.",
+      "actually_used": "gemini_api",
+      "symptoms": [
+        "one_sided_no_bank_past_sla",
+        "wrong_transaction_candidate"
+      ],
+      "severity": "critical",
+      "age_days": 4,
+      "leg_a": {
+        "leg": "A",
+        "status": "posted",
+        "rule_id": "exact_standard_fee",
+        "confidence": 1.0
+      },
+      "leg_b": {
+        "leg": "B",
+        "status": "aged_missing",
+        "rule_id": null,
+        "note": "bank credit missing 4d past SLA 7d",
+        "age_days": 4
+      },
+      "candidate_bank_refs": [
+        "ORD1000",
+        "ORD1010",
+        "ORD1021",
+        "ORD1022",
+        "ORD1023"
+      ],
+      "display_cause": "Missing bank credit (past SLA)",
+      "evidence_teaser": "Bank credit still missing after the SLA window.",
+      "evidence_facts": [
+        "Expected bank credit not found under ORD1020.",
+        "Age is 4 day(s); SLA window is 7 days.",
+        "Settled net \u20b914,083.94 has no matching credit on this reference.",
+        "A similar credit appears under ORD1000, ORD1010, ORD1021 and was not auto-linked."
+      ],
+      "evidence_action": "Verify the UTR and bank reference before clearing."
+    },
+    {
+      "order_id": "ORD1038",
+      "amount": 10011.75,
+      "cause": "aged_missing_bank",
+      "confidence": 0.95,
+      "reasoning": "The settlement entry for net amount 9811.51 is present, but the corresponding bank credit is completely missing 10 days past the 7-day SLA.",
+      "actually_used": "gemini_api",
+      "symptoms": [
+        "one_sided_no_bank_past_sla",
+        "wrong_transaction_candidate"
+      ],
+      "severity": "critical",
+      "age_days": 10,
+      "leg_a": {
+        "leg": "A",
+        "status": "posted",
+        "rule_id": "exact_standard_fee",
+        "confidence": 1.0
+      },
+      "leg_b": {
+        "leg": "B",
+        "status": "aged_missing",
+        "rule_id": null,
+        "note": "bank credit missing 10d past SLA 7d",
+        "age_days": 10
+      },
+      "candidate_bank_refs": [
+        "ORD1008",
+        "ORD1031",
+        "ORD1031",
+        "ORD1032",
+        "ORD1034"
+      ],
+      "display_cause": "Missing bank credit (past SLA)",
+      "evidence_teaser": "Bank credit still missing after the SLA window.",
+      "evidence_facts": [
+        "Expected bank credit not found under ORD1038.",
+        "Credit is 10 days old \u2014 3 day(s) past the 7-day SLA.",
+        "Settled net \u20b99,811.51 has no matching credit on this reference.",
+        "A similar credit appears under ORD1008, ORD1031, ORD1031 and was not auto-linked."
+      ],
+      "evidence_action": "Verify the UTR and bank reference before clearing."
+    },
+    {
+      "order_id": "ORD1053",
+      "amount": 9985.37,
+      "cause": "amount_mismatch",
+      "confidence": 0.9,
+      "reasoning": "The bank credit amount of 4175.50 does not match the expected net settlement amount of 9785.66 or the ledger amount of 9985.37, resulting in a shortfall of 5610.16.",
+      "actually_used": "gemini_api",
+      "symptoms": [
+        "under_amount",
+        "wrong_transaction_candidate"
+      ],
+      "severity": "critical",
+      "age_days": 17,
+      "leg_a": {
+        "leg": "A",
+        "status": "posted",
+        "rule_id": "exact_standard_fee",
+        "confidence": 1.0
+      },
+      "leg_b": {
+        "leg": "B",
+        "status": "under_amount",
+        "note": "shortfall 5610.16",
+        "delta": -5610.16
+      },
+      "candidate_bank_refs": [
+        "ORD1003",
+        "ORD1013",
+        "ORD1023",
+        "ORD1043",
+        "ORD1050"
+      ],
+      "display_cause": "Amount mismatch",
+      "evidence_teaser": "A similar credit appears under ORD1003, ORD1013, ORD1023 and was not auto-linked.",
+      "evidence_facts": [
+        "A similar credit appears under ORD1003, ORD1013, ORD1023 and was not auto-linked.",
+        "Settled net \u20b99,785.66 does not equal bank credit \u20b94,175.50."
+      ],
+      "evidence_action": "Trace the residual to fee, TDS, refund, or a posting error."
+    },
+    {
+      "order_id": "ORD1006",
+      "amount": 7619.2,
+      "cause": "aged_missing_bank",
+      "confidence": 1.0,
+      "reasoning": "The settlement record with a net amount of INR 7466.82 exists, but the corresponding bank credit is completely missing 14 days past the 7-day SLA window.",
+      "actually_used": "gemini_api",
+      "symptoms": [
+        "one_sided_no_bank_past_sla",
+        "wrong_transaction_candidate"
+      ],
+      "severity": "critical",
+      "age_days": 14,
+      "leg_a": {
+        "leg": "A",
+        "status": "posted",
+        "rule_id": "exact_standard_fee",
+        "confidence": 1.0
+      },
+      "leg_b": {
+        "leg": "B",
+        "status": "aged_missing",
+        "rule_id": null,
+        "note": "bank credit missing 14d past SLA 7d",
+        "age_days": 14
+      },
+      "candidate_bank_refs": [
+        "ORD1000",
+        "ORD1001",
+        "ORD1002",
+        "ORD1003",
+        "ORD1004"
+      ],
+      "display_cause": "Missing bank credit (past SLA)",
+      "evidence_teaser": "Bank credit still missing after the SLA window.",
+      "evidence_facts": [
+        "Expected bank credit not found under ORD1006.",
+        "Credit is 14 days old \u2014 7 day(s) past the 7-day SLA.",
+        "Settled net \u20b97,466.82 has no matching credit on this reference.",
+        "A similar credit appears under ORD1000, ORD1001, ORD1002 and was not auto-linked."
+      ],
+      "evidence_action": "Verify the UTR and bank reference before clearing."
+    },
+    {
+      "order_id": "ORD1063",
+      "amount": 6321.47,
+      "cause": "duplicate_entry",
+      "confidence": 1.0,
+      "reasoning": "The order ORD1063 appears twice in the internal ledger with an amount of 6321.47, triggering the ledger_dupe symptom while only one settlement and bank entry exist.",
+      "actually_used": "gemini_api",
+      "symptoms": [
+        "ledger_dupe"
+      ],
+      "severity": "critical",
+      "age_days": 11,
+      "leg_a": {
+        "leg": "A",
+        "status": "posted",
+        "rule_id": "exact_standard_fee",
+        "confidence": 1.0
+      },
+      "leg_b": {
+        "leg": "B",
+        "status": "posted",
+        "rule_id": "exact_standard_fee",
+        "confidence": 1.0,
+        "lag_days": 0
+      },
+      "display_cause": "Duplicate ledger entry",
+      "evidence_teaser": "This order ID appears more than once in the ledger.",
+      "evidence_facts": [
+        "This order ID appears more than once in the ledger."
+      ],
+      "evidence_action": "Remove or merge the duplicate ledger entry."
+    },
+    {
+      "order_id": "ORD1021",
+      "amount": 5884.69,
+      "cause": "duplicate_entry",
+      "confidence": 1.0,
+      "reasoning": "The order ORD1021 appears twice in the internal ledger for 5884.69 INR, while there is only a single matching settlement and bank credit of 5767.00 INR.",
+      "actually_used": "gemini_api",
+      "symptoms": [
+        "ledger_dupe"
+      ],
+      "severity": "critical",
+      "age_days": 21,
+      "leg_a": {
+        "leg": "A",
+        "status": "posted",
+        "rule_id": "exact_standard_fee",
+        "confidence": 1.0
+      },
+      "leg_b": {
+        "leg": "B",
+        "status": "posted",
+        "rule_id": "exact_standard_fee",
+        "confidence": 1.0,
+        "lag_days": 0
+      },
+      "display_cause": "Duplicate ledger entry",
+      "evidence_teaser": "This order ID appears more than once in the ledger.",
+      "evidence_facts": [
+        "This order ID appears more than once in the ledger."
+      ],
+      "evidence_action": "Remove or merge the duplicate ledger entry."
+    }
+  ],
+  "exception_cause_breakdown": {
+    "duplicate_credit": 4,
+    "missing_settlement": 1,
+    "wrong_transaction": 3,
+    "duplicate_entry": 3,
+    "aged_missing_bank": 5,
+    "amount_mismatch": 1
+  },
+  "ground_truth_scoring": [
+    {
+      "order_id": "ORD1000",
+      "true_cause": "rounding",
+      "pipeline_outcome": "matched_auto",
+      "correct": true
+    },
+    {
+      "order_id": "ORD1001",
+      "true_cause": "clean",
+      "pipeline_outcome": "matched_auto",
+      "correct": true
+    },
+    {
+      "order_id": "ORD1002",
+      "true_cause": "clean",
+      "pipeline_outcome": "matched_auto",
+      "correct": true
+    },
+    {
+      "order_id": "ORD1003",
+      "true_cause": "clean",
+      "pipeline_outcome": "matched_auto",
+      "correct": true
+    },
+    {
+      "order_id": "ORD1004",
+      "true_cause": "duplicate_credit",
+      "pipeline_outcome": "duplicate_credit",
+      "correct": true
+    },
+    {
+      "order_id": "ORD1005",
+      "true_cause": "duplicate_entry",
+      "pipeline_outcome": "duplicate_entry",
+      "correct": true
+    },
+    {
+      "order_id": "ORD1006",
+      "true_cause": "aged_missing_bank",
+      "pipeline_outcome": "aged_missing_bank",
+      "correct": true
+    },
+    {
+      "order_id": "ORD1007",
+      "true_cause": "clean",
+      "pipeline_outcome": "matched_auto",
+      "correct": true
+    },
+    {
+      "order_id": "ORD1008",
+      "true_cause": "timing_lag",
+      "pipeline_outcome": "matched_auto",
+      "correct": true
+    },
+    {
+      "order_id": "ORD1009",
+      "true_cause": "clean",
+      "pipeline_outcome": "matched_auto",
+      "correct": true
+    },
+    {
+      "order_id": "ORD1010",
+      "true_cause": "clean",
+      "pipeline_outcome": "matched_auto",
+      "correct": true
+    },
+    {
+      "order_id": "ORD1011",
+      "true_cause": "fee_variance",
+      "pipeline_outcome": "matched_auto",
+      "correct": true
+    },
+    {
+      "order_id": "ORD1012",
+      "true_cause": "clean",
+      "pipeline_outcome": "matched_auto",
+      "correct": true
+    },
+    {
+      "order_id": "ORD1013",
+      "true_cause": "clean",
+      "pipeline_outcome": "matched_auto",
+      "correct": true
+    },
+    {
+      "order_id": "ORD1014",
+      "true_cause": "rounding",
+      "pipeline_outcome": "matched_auto",
+      "correct": true
+    },
+    {
+      "order_id": "ORD1015",
+      "true_cause": "tds_deduction",
+      "pipeline_outcome": "matched_auto",
+      "correct": true
+    },
+    {
+      "order_id": "ORD1016",
+      "true_cause": "clean",
+      "pipeline_outcome": "matched_auto",
+      "correct": true
+    },
+    {
+      "order_id": "ORD1017",
+      "true_cause": "tds_deduction",
+      "pipeline_outcome": "matched_auto",
+      "correct": true
+    },
+    {
+      "order_id": "ORD1018",
+      "true_cause": "pending_bank",
+      "pipeline_outcome": "aged_missing_bank",
+      "correct": false
+    },
+    {
+      "order_id": "ORD1019",
+      "true_cause": "clean",
+      "pipeline_outcome": "matched_auto",
+      "correct": true
+    },
+    {
+      "order_id": "ORD1020",
+      "true_cause": "pending_bank",
+      "pipeline_outcome": "aged_missing_bank",
+      "correct": false
+    },
+    {
+      "order_id": "ORD1021",
+      "true_cause": "duplicate_entry",
+      "pipeline_outcome": "duplicate_entry",
+      "correct": true
+    },
+    {
+      "order_id": "ORD1022",
+      "true_cause": "clean",
+      "pipeline_outcome": "matched_auto",
+      "correct": true
+    },
+    {
+      "order_id": "ORD1023",
+      "true_cause": "clean",
+      "pipeline_outcome": "matched_auto",
+      "correct": true
+    },
+    {
+      "order_id": "ORD1025",
+      "true_cause": "clean",
+      "pipeline_outcome": "matched_auto",
+      "correct": true
+    },
+    {
+      "order_id": "ORD1026",
+      "true_cause": "clean",
+      "pipeline_outcome": "matched_auto",
+      "correct": true
+    },
+    {
+      "order_id": "ORD1027",
+      "true_cause": "clean",
+      "pipeline_outcome": "matched_auto",
+      "correct": true
+    },
+    {
+      "order_id": "ORD1028",
+      "true_cause": "pending_bank",
+      "pipeline_outcome": "wrong_transaction",
+      "correct": false
+    },
+    {
+      "order_id": "ORD1029",
+      "true_cause": "rounding",
+      "pipeline_outcome": "matched_auto",
+      "correct": true
+    },
+    {
+      "order_id": "ORD1030",
+      "true_cause": "pending_bank",
+      "pipeline_outcome": "wrong_transaction",
+      "correct": false
+    },
+    {
+      "order_id": "ORD1031",
+      "true_cause": "duplicate_credit",
+      "pipeline_outcome": "duplicate_credit",
+      "correct": true
+    },
+    {
+      "order_id": "ORD1032",
+      "true_cause": "tds_deduction",
+      "pipeline_outcome": "matched_auto",
+      "correct": true
+    },
+    {
+      "order_id": "ORD1034",
+      "true_cause": "clean",
+      "pipeline_outcome": "matched_auto",
+      "correct": true
+    },
+    {
+      "order_id": "ORD1035",
+      "true_cause": "tds_deduction",
+      "pipeline_outcome": "matched_auto",
+      "correct": true
+    },
+    {
+      "order_id": "ORD1036",
+      "true_cause": "pending_bank",
+      "pipeline_outcome": "aged_missing_bank",
+      "correct": false
+    },
+    {
+      "order_id": "ORD1037",
+      "true_cause": "rounding",
+      "pipeline_outcome": "matched_auto",
+      "correct": true
+    },
+    {
+      "order_id": "ORD1038",
+      "true_cause": "aged_missing_bank",
+      "pipeline_outcome": "aged_missing_bank",
+      "correct": true
+    },
+    {
+      "order_id": "ORD1039",
+      "true_cause": "tds_deduction",
+      "pipeline_outcome": "matched_auto",
+      "correct": true
+    },
+    {
+      "order_id": "ORD1040",
+      "true_cause": "duplicate_credit",
+      "pipeline_outcome": "duplicate_credit",
+      "correct": true
+    },
+    {
+      "order_id": "ORD1041",
+      "true_cause": "clean",
+      "pipeline_outcome": "matched_auto",
+      "correct": true
+    },
+    {
+      "order_id": "ORD1042",
+      "true_cause": "clean",
+      "pipeline_outcome": "matched_auto",
+      "correct": true
+    },
+    {
+      "order_id": "ORD1043",
+      "true_cause": "clean",
+      "pipeline_outcome": "matched_auto",
+      "correct": true
+    },
+    {
+      "order_id": "ORD1044",
+      "true_cause": "clean",
+      "pipeline_outcome": "matched_auto",
+      "correct": true
+    },
+    {
+      "order_id": "ORD1045",
+      "true_cause": "clean",
+      "pipeline_outcome": "matched_auto",
+      "correct": true
+    },
+    {
+      "order_id": "ORD1046",
+      "true_cause": "clean",
+      "pipeline_outcome": "matched_auto",
+      "correct": true
+    },
+    {
+      "order_id": "ORD1047",
+      "true_cause": "clean",
+      "pipeline_outcome": "matched_auto",
+      "correct": true
+    },
+    {
+      "order_id": "ORD1048",
+      "true_cause": "rounding",
+      "pipeline_outcome": "matched_auto",
+      "correct": true
+    },
+    {
+      "order_id": "ORD1049",
+      "true_cause": "clean",
+      "pipeline_outcome": "matched_auto",
+      "correct": true
+    },
+    {
+      "order_id": "ORD1050",
+      "true_cause": "clean",
+      "pipeline_outcome": "matched_auto",
+      "correct": true
+    },
+    {
+      "order_id": "ORD1051",
+      "true_cause": "clean",
+      "pipeline_outcome": "matched_auto",
+      "correct": true
+    },
+    {
+      "order_id": "ORD1052",
+      "true_cause": "clean",
+      "pipeline_outcome": "matched_auto",
+      "correct": true
+    },
+    {
+      "order_id": "ORD1053",
+      "true_cause": "refund_partial",
+      "pipeline_outcome": "amount_mismatch",
+      "correct": false
+    },
+    {
+      "order_id": "ORD1054",
+      "true_cause": "rounding",
+      "pipeline_outcome": "matched_auto",
+      "correct": true
+    },
+    {
+      "order_id": "ORD1055",
+      "true_cause": "rounding",
+      "pipeline_outcome": "matched_auto",
+      "correct": true
+    },
+    {
+      "order_id": "ORD1056",
+      "true_cause": "clean",
+      "pipeline_outcome": "matched_auto",
+      "correct": true
+    },
+    {
+      "order_id": "ORD1057",
+      "true_cause": "duplicate_credit",
+      "pipeline_outcome": "duplicate_credit",
+      "correct": true
+    },
+    {
+      "order_id": "ORD1058",
+      "true_cause": "clean",
+      "pipeline_outcome": "matched_auto",
+      "correct": true
+    },
+    {
+      "order_id": "ORD1059",
+      "true_cause": "clean",
+      "pipeline_outcome": "matched_auto",
+      "correct": true
+    },
+    {
+      "order_id": "ORD1061",
+      "true_cause": "rounding",
+      "pipeline_outcome": "matched_auto",
+      "correct": true
+    },
+    {
+      "order_id": "ORD1062",
+      "true_cause": "tds_deduction",
+      "pipeline_outcome": "matched_auto",
+      "correct": true
+    },
+    {
+      "order_id": "ORD1063",
+      "true_cause": "duplicate_entry",
+      "pipeline_outcome": "duplicate_entry",
+      "correct": true
+    },
+    {
+      "order_id": "ORD1064",
+      "true_cause": "pending_bank",
+      "pipeline_outcome": "wrong_transaction",
+      "correct": false
+    },
+    {
+      "order_id": "ORD1065",
+      "true_cause": "missing_settlement",
+      "pipeline_outcome": "missing_settlement",
+      "correct": true
+    },
+    {
+      "order_id": "ORD1066",
+      "true_cause": "clean",
+      "pipeline_outcome": "matched_auto",
+      "correct": true
+    },
+    {
+      "order_id": "ORD1067",
+      "true_cause": "clean",
+      "pipeline_outcome": "matched_auto",
+      "correct": true
+    },
+    {
+      "order_id": "ORD1068",
+      "true_cause": "clean",
+      "pipeline_outcome": "matched_auto",
+      "correct": true
+    },
+    {
+      "order_id": "ORD1069",
+      "true_cause": "clean",
+      "pipeline_outcome": "matched_auto",
+      "correct": true
+    },
+    {
+      "order_id": "ORD1033",
+      "true_cause": "batch_settlement",
+      "pipeline_outcome": "matched_auto",
+      "correct": true
+    },
+    {
+      "order_id": "ORD1060",
+      "true_cause": "batch_settlement",
+      "pipeline_outcome": "matched_auto",
+      "correct": true
+    },
+    {
+      "order_id": "ORD1024",
+      "true_cause": "batch_settlement",
+      "pipeline_outcome": "matched_auto",
+      "correct": true
+    }
+  ],
+  "accuracy_by_cause": {
+    "rounding": {
+      "correct": 8,
+      "total": 8,
+      "accuracy": 1.0
+    },
+    "clean": {
+      "correct": 34,
+      "total": 34,
+      "accuracy": 1.0
+    },
+    "duplicate_credit": {
+      "correct": 4,
+      "total": 4,
+      "accuracy": 1.0
+    },
+    "duplicate_entry": {
+      "correct": 3,
+      "total": 3,
+      "accuracy": 1.0
+    },
+    "aged_missing_bank": {
+      "correct": 2,
+      "total": 2,
+      "accuracy": 1.0
+    },
+    "timing_lag": {
+      "correct": 1,
+      "total": 1,
+      "accuracy": 1.0
+    },
+    "fee_variance": {
+      "correct": 1,
+      "total": 1,
+      "accuracy": 1.0
+    },
+    "tds_deduction": {
+      "correct": 6,
+      "total": 6,
+      "accuracy": 1.0
+    },
+    "pending_bank": {
+      "correct": 0,
+      "total": 6,
+      "accuracy": 0.0
+    },
+    "refund_partial": {
+      "correct": 0,
+      "total": 1,
+      "accuracy": 0.0
+    },
+    "missing_settlement": {
+      "correct": 1,
+      "total": 1,
+      "accuracy": 1.0
+    },
+    "batch_settlement": {
+      "correct": 3,
+      "total": 3,
+      "accuracy": 1.0
+    }
+  }
+}
+</script>
+<script>
+const data = JSON.parse(document.getElementById('results-data').textContent);
+const s = data.summary;
+
+const modeLabels = {
+  rule_based: 'Rule-based',
+  gemini_api: 'Gemini API',
+  ml: 'Self-trained model',
+  gemini_fallback_to_rule_based: `Gemini API (fell back to rule-based for ${s.gemini_fallback_count} of ${s.exceptions} exceptions)`,
+  ml_with_gemini_escalation: `Self-trained model + Gemini escalation (${s.escalation_attempted_count} of ${s.exceptions} low-confidence exceptions escalated)`
+};
+
+document.getElementById('fMode').textContent = modeLabels[s.classifier_mode] || s.classifier_mode;
+
+if (s.gemini_fallback_count > 0) {
+  const banner = document.getElementById('fallbackBanner');
+  banner.style.display = 'block';
+  banner.textContent = `⚠️ Gemini API unavailable for ${s.gemini_fallback_count} exception${s.gemini_fallback_count > 1 ? 's' : ''} this run; the rule-based explanation was retained.`;
+} else if (s.escalation_attempted_count > 0 && s.escalation_succeeded_count < s.escalation_attempted_count) {
+  const failedCount = s.escalation_attempted_count - s.escalation_succeeded_count;
+  const banner = document.getElementById('fallbackBanner');
+  banner.style.display = 'block';
+  banner.textContent = `⚠️ Gemini API unavailable for ${failedCount} low-confidence exception escalation${failedCount > 1 ? 's' : ''} this run; local model predictions were retained.`;
+}
+document.getElementById('fTotal').textContent = s.total_transactions;
+document.getElementById('tExact').textContent = s.exact_matches;
+document.getElementById('tFuzzy').textContent = s.fuzzy_matches;
+document.getElementById('tReview').textContent = s.review_matches || 0;
+document.getElementById('tPending').textContent = s.pending_bank || 0;
+document.getElementById('tExc').textContent = s.exceptions;
+if (s.self_scored_accuracy === null || s.self_scored_accuracy === undefined) {
+  document.getElementById('tAcc').textContent = 'N/A';
+  const accBig = document.getElementById('accBig');
+  accBig.textContent = 'N/A — no ground truth provided for this batch';
+  accBig.style.fontSize = '1.8rem';
+  document.querySelector('.accuracy-box .desc').textContent = 'Self-scored accuracy metrics are not available because no ground truth file was provided.';
+} else {
+  document.getElementById('tAcc').textContent = (s.self_scored_accuracy*100).toFixed(1) + '%';
+  document.getElementById('accBig').textContent = (s.self_scored_accuracy*100).toFixed(1) + '%';
+}
+let genTimeStr = 'generated recently';
+if (s.generated_at) {
+  try {
+    const d = new Date(s.generated_at);
+    const yr = d.getFullYear();
+    const mo = String(d.getMonth() + 1).padStart(2, '0');
+    const dy = String(d.getDate()).padStart(2, '0');
+    const hr = String(d.getHours()).padStart(2, '0');
+    const mn = String(d.getMinutes()).padStart(2, '0');
+    genTimeStr = `generated ${yr}-${mo}-${dy} ${hr}:${mn}`;
+  } catch (e) {
+    genTimeStr = 'generated ' + s.generated_at;
+  }
+}
+document.getElementById('genTime').textContent = genTimeStr;
+
+const track = document.getElementById('barTrack');
+const total = s.total_transactions;
+[
+  ['exact', s.exact_matches],
+  ['fuzzy', s.fuzzy_matches],
+  ['review', s.review_matches || 0],
+  ['pending', s.pending_bank || 0],
+  ['exception', s.exceptions],
+].forEach(([cls, n])=>{
+  if(n<=0) return;
+  const seg = document.createElement('div');
+  seg.className = 'bar-seg ' + cls;
+  seg.style.width = (n/total*100) + '%';
+  seg.textContent = n;
+  track.appendChild(seg);
+});
+
+const leg = s.leg_summary || {};
+document.getElementById('legBox').innerHTML =
+  `<b>Leg A</b> (ledger↔settlement): ${leg.A_posted||0} posted · ${leg.A_failed||0} failed<br>` +
+  `<b>Leg B</b> (settlement↔bank): ${leg.B_posted||0} posted · ${leg.B_pending||0} pending · ${leg.B_review||0} review · ${leg.B_failed||0} failed`;
+
+const rules = s.rule_counts || {};
+const ruleStr = Object.keys(rules).length
+  ? Object.entries(rules).map(([k,v]) => `${k}: ${v}`).join(' · ')
+  : 'none';
+document.getElementById('ruleBox').innerHTML = `<b>Matched by rule</b><br>${ruleStr}`;
+
+const autoPct = ((s.auto_match_rate != null ? s.auto_match_rate : s.match_rate) * 100).toFixed(1);
+const plusPct = ((s.auto_plus_review_rate != null ? s.auto_plus_review_rate : s.match_rate) * 100).toFixed(1);
+document.getElementById('rateLine').textContent =
+  `Auto-match rate: ${autoPct}% · Auto+review rate: ${plusPct}%` +
+  (s.policy && s.policy.sla_days != null ? ` · SLA ${s.policy.sla_days}d (as of ${s.policy.as_of || '—'})` : '');
+
+const causeStamp = {
+  duplicate_entry: 'dup',
+  duplicate_credit: 'dup',
+  missing_settlement: 'missing',
+  aged_missing_bank: 'aged',
+  refund_partial: 'refund',
+  unexplained: 'unexplained',
+};
+const causeLabel = {
+  duplicate_entry: 'Duplicate ledger entry',
+  duplicate_credit: 'Duplicate bank credit',
+  missing_settlement: 'Missing settlement',
+  aged_missing_bank: 'Missing bank credit (past SLA)',
+  refund_partial: 'Partial refund',
+  refund_full: 'Full refund',
+  unexplained: 'Needs review',
+  unexplained_variance: 'Unexplained residual',
+  timing_lag: 'Settlement-to-bank lag',
+  fee_variance: 'Fee variance',
+  tds_deduction: 'TDS withheld',
+  rounding: 'Rounding difference',
+  pending_bank: 'Pending bank credit',
+  wrong_transaction: 'Possible reference mismatch',
+  ambiguous_match: 'Ambiguous candidates',
+  amount_mismatch: 'Amount mismatch',
+  duplicate_gateway: 'Duplicate settlement',
+  batch_settlement: 'Batch settlement',
+};
+
+const AUTO_CONFIRM = 0.9;
+const UNCERTAIN_CAUSES = new Set([
+  "unexplained", "unexplained_variance", "ambiguous_match", "wrong_transaction",
+]);
+
+function escapeHtml(s) {
+  return String(s).replace(/[&<>"']/g, (c) => ({
+    "&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"
+  })[c]);
+}
+
+function showClassificationConfidence(e) {
+  const score = Number(e.confidence);
+  if (!Number.isFinite(score) || score <= 0) return false;
+  if (UNCERTAIN_CAUSES.has(e.cause)) return true;
+  return score < AUTO_CONFIRM;
+}
+
+function presentException(ex) {
+  if (ex.display_cause && ex.evidence_teaser && (ex.evidence_facts || []).length) {
+    return {
+      label: ex.display_cause,
+      teaser: ex.evidence_teaser,
+      facts: ex.evidence_facts,
+      action: ex.evidence_action || "Review the source rows before clearing.",
+    };
+  }
+  const symptoms = new Set(ex.symptoms || []);
+  const cause = ex.cause || "";
+  const oid = ex.order_id || "this order";
+  const facts = [];
+  let action = "Review the source rows before clearing.";
+  const missingBank = symptoms.has("one_sided_no_bank_past_sla") || cause === "aged_missing_bank";
+  if (missingBank) {
+    facts.push(`Expected bank credit not found under ${oid}.`);
+    if (ex.age_days) {
+      const overdue = Math.max(0, Number(ex.age_days) - 7);
+      facts.push(overdue
+        ? `Credit is ${ex.age_days} days old — ${overdue} day(s) past the 7-day SLA.`
+        : `Age is ${ex.age_days} day(s); SLA window is 7 days.`);
+    }
+  }
+  if (symptoms.has("wrong_transaction_candidate") || cause === "wrong_transaction") {
+    facts.push("A similar amount or near-ID candidate exists on another reference and was not auto-linked.");
+    action = "Verify the UTR and bank reference before clearing.";
+  }
+  if (symptoms.has("ambiguous_match_candidate") || cause === "ambiguous_match") {
+    facts.push("Multiple or unreferenced counterparts exist; no unique link.");
+    action = "Choose the correct counterpart from the source files, or leave unmatched.";
+  }
+  if (cause === "refund_partial" || symptoms.has("refund_partial")) {
+    facts.push("Gateway refund or bank debit evidence for a partial reversal.");
+    action = "Confirm the refund against the gateway payout and the bank debit.";
+  }
+  if (cause === "refund_full" || symptoms.has("refund_full")) {
+    facts.push("Refund or reversing debit evidence nets the settled amount to zero.");
+    action = "Confirm the reversal posted on both gateway and bank.";
+  }
+  if (cause === "duplicate_credit" || symptoms.has("cardinality_break")) {
+    facts.push("Duplicate bank credits posted against this reference.");
+    action = "Confirm with the bank whether one credit should be reversed.";
+  }
+  if (!facts.length) facts.push("The matcher could not tie this row out automatically.");
+  let teaser = facts[0];
+  if (cause === "wrong_transaction" && missingBank) {
+    teaser = "Bank credit missing past SLA. Similar credit found elsewhere — not auto-linked.";
+  } else if (cause === "wrong_transaction") {
+    teaser = "Similar counterpart found on another reference — not auto-linked.";
+  } else if (missingBank) {
+    teaser = "Bank credit still missing after the SLA window.";
+  } else if (cause === "ambiguous_match") {
+    teaser = "More than one plausible counterpart — not auto-linked.";
+  }
+  return {
+    label: ex.display_cause || causeLabel[cause] || String(cause).replaceAll("_", " "),
+    teaser,
+    facts,
+    action,
+  };
+}
+
+const tbody = document.getElementById('excBody');
+data.exceptions.forEach(e=>{
+  const tr = document.createElement('tr');
+  const stampClass = causeStamp[e.cause] || 'unexplained';
+  const presented = presentException(e);
+  const showConf = showClassificationConfidence(e);
+  const pct = showConf ? Math.round(Number(e.confidence) * 100) : null;
+  const sev = e.severity || 'low';
+  
+  const formattedAmount = e.amount !== undefined 
+    ? '₹' + Number(e.amount).toLocaleString('en-IN', {minimumFractionDigits: 2, maximumFractionDigits: 2}) 
+    : '—';
+
+  let fallbackTag = '';
+  if (e.actually_used === 'rule_based_fallback') {
+    fallbackTag = ' <span style="font-size:0.7rem; color:var(--rust-2); font-family:\'IBM Plex Mono\', monospace; margin-left:6px;">(fallback)</span>';
+  } else if (e.actually_used === 'gemini_escalation') {
+    fallbackTag = ' <span style="font-size:0.7rem; color:var(--forest-2); font-family:\'IBM Plex Mono\', monospace; margin-left:6px;">(Gemini reviewed)</span>';
+  } else if (e.actually_used === 'ml_escalation_attempted_fallback') {
+    fallbackTag = ' <span style="font-size:0.7rem; color:var(--rust); font-family:\'IBM Plex Mono\', monospace; margin-left:6px;">(escalation failed)</span>';
+  }
+
+  const items = presented.facts.map((f) => `<li>${escapeHtml(f)}</li>`).join("");
+
+  tr.innerHTML = `
+    <td class="mono">${escapeHtml(e.order_id)}</td>
+    <td class="num-cell"><b>${formattedAmount}</b></td>
+    <td><span class="stamp sev-${sev}">${sev}</span></td>
+    <td><span class="stamp ${stampClass}">${escapeHtml(presented.label)}</span>${fallbackTag}</td>
+    <td>${showConf
+      ? `<span class="confidence-uncertain" title="Classifier score ${pct}%. Not a calibrated probability. Auto-confirm bar is ${Math.round(AUTO_CONFIRM * 100)}%.">Needs review</span>`
+      : `<span class="confidence-muted" title="Established classification — score withheld">—</span>`}</td>
+    <td><details class="evidence"><summary>${escapeHtml(presented.teaser)}</summary>
+      <ul>${items}</ul>
+      <p class="action">Next: ${escapeHtml(presented.action)}</p>
+    </details></td>
+  `;
+  tbody.appendChild(tr);
+});
+
+// Provenance calculation
+const provCounts = {
+  gemini_api: 0,
+  rule_based_fallback: 0,
+  rule_based: 0,
+  ml: 0,
+  gemini_escalation: 0,
+  ml_escalation_attempted_fallback: 0
+};
+
+data.exceptions.forEach(e => {
+  const key = e.actually_used || 'rule_based';
+  provCounts[key] = (provCounts[key] || 0) + 1;
+});
+
+const labelMap = {
+  gemini_api: 'Gemini API',
+  rule_based_fallback: 'Gemini Fallback',
+  rule_based: 'Rule-based',
+  ml: 'Local ML Model',
+  gemini_escalation: 'Gemini Escalated',
+  ml_escalation_attempted_fallback: 'Escalation Failed'
+};
+
+const provString = Object.entries(provCounts)
+  .filter(([_, count]) => count > 0)
+  .map(([key, count]) => `${count} ${labelMap[key] || key}`)
+  .join(' · ');
+
+document.getElementById('provCounts').textContent = provString || 'None';
+
+// Category accuracy breakdown table
+const accContainer = document.getElementById('categoryAccuracyContainer');
+const accBody = document.getElementById('accCategoryBody');
+if (s.ground_truth_available && data.accuracy_by_cause && Object.keys(data.accuracy_by_cause).length > 0) {
+  accContainer.style.display = 'block';
+  Object.entries(data.accuracy_by_cause).forEach(([cause, stats]) => {
+    const tr = document.createElement('tr');
+    const pct = (stats.accuracy * 100).toFixed(1) + '%';
+    const score = `${stats.correct} of ${stats.total}`;
+    const label = causeLabel[cause] || cause;
+    
+    let color = 'var(--forest-2)';
+    if (stats.accuracy < 0.5) {
+      color = 'var(--rust-2)';
+    } else if (stats.accuracy < 0.9) {
+      color = 'var(--brass)';
+    }
+    
+    tr.innerHTML = `
+      <td><b>${label}</b></td>
+      <td class="num-cell" style="color:${color}; font-weight:600;">${pct}</td>
+      <td class="num-cell mono">${score}</td>
+    `;
+    accBody.appendChild(tr);
+  });
+} else {
+  accContainer.style.display = 'none';
+}
+</script>
+</body>
+</html>

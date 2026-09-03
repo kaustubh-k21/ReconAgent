@@ -1,0 +1,344 @@
+{
+  "easy_100": {
+    "dataset": "easy_100",
+    "predictions": "/Users/kaustubhh/Desktop/reconagent/evaluation_datasets/_work/easy_100/predictions.json",
+    "n": 100,
+    "harm": {
+      "false_match_count": 0,
+      "false_matches": [],
+      "note": "False MATCH is the dangerous error: a break was auto-cleared."
+    },
+    "false_exception_count": 0,
+    "false_exceptions_sample": [],
+    "correct_matches": 80,
+    "correct_exceptions": 20,
+    "pending_when_match_expected": [],
+    "pending_when_exception_expected": [],
+    "review_when_match_expected": [],
+    "review_when_exception_expected": [],
+    "missing_predictions": [],
+    "decision_accuracy": 1.0,
+    "match_precision": 1.0,
+    "match_recall": 1.0,
+    "match_type_accuracy_given_both_match": 1.0,
+    "match_type_n": 80,
+    "match_type_by_expected": {
+      "EXACT": {
+        "n": 70,
+        "accuracy": 1.0
+      },
+      "FUZZY": {
+        "n": 7,
+        "accuracy": 1.0
+      },
+      "TOLERANCE": {
+        "n": 3,
+        "accuracy": 1.0
+      }
+    },
+    "exception_reason_accuracy_given_both_exception": 0.95,
+    "exception_reason_n": 20,
+    "exception_reason_by_expected": {
+      "amount_mismatch": {
+        "n": 3,
+        "caught_as_exception": 3,
+        "reason_accuracy": 1.0
+      },
+      "duplicate_bank_credit": {
+        "n": 3,
+        "caught_as_exception": 3,
+        "reason_accuracy": 1.0
+      },
+      "missing_bank_credit": {
+        "n": 5,
+        "caught_as_exception": 5,
+        "reason_accuracy": 0.8
+      },
+      "missing_settlement": {
+        "n": 5,
+        "caught_as_exception": 5,
+        "reason_accuracy": 1.0
+      },
+      "refund_partial": {
+        "n": 4,
+        "caught_as_exception": 4,
+        "reason_accuracy": 1.0
+      }
+    },
+    "confusion_expected_vs_predicted": {
+      "EXCEPTION->EXCEPTION": 20,
+      "MATCH->MATCH": 80
+    },
+    "ground_truth": "/Users/kaustubhh/Desktop/reconagent/evaluation_datasets/easy_100/ground_truth.csv",
+    "agent_meta": {
+      "dataset": "easy_100",
+      "adapter": {
+        "source_dir": "/Users/kaustubhh/Desktop/reconagent/evaluation_datasets/easy_100",
+        "dest_dir": "/Users/kaustubhh/Desktop/reconagent/evaluation_datasets/_work/easy_100/engine",
+        "normalize_ids": true,
+        "copied_ground_truth": false,
+        "invented_batch_ids": false,
+        "ledger_rows": 100,
+        "settlement_rows": 95,
+        "bank_rows": 93,
+        "money_validation": "OK",
+        "column_map": {
+          "merchant_order_id": "order_id",
+          "customer_name": "customer",
+          "net_amount": "net_amount",
+          "refund_amount": "refund_amount",
+          "value_date": "credit_date",
+          "debit_amount": "debit_amount",
+          "payout_batch": "settlement_batch_id"
+        }
+      },
+      "classifier_mode": "rule_based",
+      "schema_version": 1
+    }
+  },
+  "medium_100": {
+    "dataset": "medium_100",
+    "predictions": "/Users/kaustubhh/Desktop/reconagent/evaluation_datasets/_work/medium_100/predictions.json",
+    "n": 100,
+    "harm": {
+      "false_match_count": 0,
+      "false_matches": [],
+      "note": "False MATCH is the dangerous error: a break was auto-cleared."
+    },
+    "false_exception_count": 0,
+    "false_exceptions_sample": [],
+    "correct_matches": 60,
+    "correct_exceptions": 40,
+    "pending_when_match_expected": [],
+    "pending_when_exception_expected": [],
+    "review_when_match_expected": [],
+    "review_when_exception_expected": [],
+    "missing_predictions": [],
+    "decision_accuracy": 1.0,
+    "match_precision": 1.0,
+    "match_recall": 1.0,
+    "match_type_accuracy_given_both_match": 1.0,
+    "match_type_n": 60,
+    "match_type_by_expected": {
+      "EXACT": {
+        "n": 31,
+        "accuracy": 1.0
+      },
+      "FUZZY": {
+        "n": 11,
+        "accuracy": 1.0
+      },
+      "MANY_TO_ONE": {
+        "n": 3,
+        "accuracy": 1.0
+      },
+      "ONE_TO_MANY": {
+        "n": 3,
+        "accuracy": 1.0
+      },
+      "TOLERANCE": {
+        "n": 12,
+        "accuracy": 1.0
+      }
+    },
+    "exception_reason_accuracy_given_both_exception": 0.925,
+    "exception_reason_n": 40,
+    "exception_reason_by_expected": {
+      "amount_mismatch": {
+        "n": 8,
+        "caught_as_exception": 8,
+        "reason_accuracy": 0.875
+      },
+      "duplicate_bank_credit": {
+        "n": 5,
+        "caught_as_exception": 5,
+        "reason_accuracy": 1.0
+      },
+      "duplicate_gateway": {
+        "n": 5,
+        "caught_as_exception": 5,
+        "reason_accuracy": 1.0
+      },
+      "missing_bank_credit": {
+        "n": 8,
+        "caught_as_exception": 8,
+        "reason_accuracy": 0.875
+      },
+      "missing_settlement": {
+        "n": 6,
+        "caught_as_exception": 6,
+        "reason_accuracy": 0.8333
+      },
+      "refund_full": {
+        "n": 3,
+        "caught_as_exception": 3,
+        "reason_accuracy": 1.0
+      },
+      "refund_partial": {
+        "n": 5,
+        "caught_as_exception": 5,
+        "reason_accuracy": 1.0
+      }
+    },
+    "confusion_expected_vs_predicted": {
+      "EXCEPTION->EXCEPTION": 40,
+      "MATCH->MATCH": 60
+    },
+    "ground_truth": "/Users/kaustubhh/Desktop/reconagent/evaluation_datasets/medium_100/ground_truth.csv",
+    "agent_meta": {
+      "dataset": "medium_100",
+      "adapter": {
+        "source_dir": "/Users/kaustubhh/Desktop/reconagent/evaluation_datasets/medium_100",
+        "dest_dir": "/Users/kaustubhh/Desktop/reconagent/evaluation_datasets/_work/medium_100/engine",
+        "normalize_ids": true,
+        "copied_ground_truth": false,
+        "invented_batch_ids": false,
+        "ledger_rows": 100,
+        "settlement_rows": 113,
+        "bank_rows": 107,
+        "money_validation": "OK",
+        "column_map": {
+          "merchant_order_id": "order_id",
+          "customer_name": "customer",
+          "net_amount": "net_amount",
+          "refund_amount": "refund_amount",
+          "value_date": "credit_date",
+          "debit_amount": "debit_amount",
+          "payout_batch": "settlement_batch_id"
+        }
+      },
+      "classifier_mode": "rule_based",
+      "schema_version": 1
+    }
+  },
+  "hard_100": {
+    "dataset": "hard_100",
+    "predictions": "/Users/kaustubhh/Desktop/reconagent/evaluation_datasets/_work/hard_100/predictions.json",
+    "n": 100,
+    "harm": {
+      "false_match_count": 0,
+      "false_matches": [],
+      "note": "False MATCH is the dangerous error: a break was auto-cleared."
+    },
+    "false_exception_count": 0,
+    "false_exceptions_sample": [],
+    "correct_matches": 46,
+    "correct_exceptions": 54,
+    "pending_when_match_expected": [],
+    "pending_when_exception_expected": [],
+    "review_when_match_expected": [],
+    "review_when_exception_expected": [],
+    "missing_predictions": [],
+    "decision_accuracy": 1.0,
+    "match_precision": 1.0,
+    "match_recall": 1.0,
+    "match_type_accuracy_given_both_match": 1.0,
+    "match_type_n": 46,
+    "match_type_by_expected": {
+      "EXACT": {
+        "n": 24,
+        "accuracy": 1.0
+      },
+      "FUZZY": {
+        "n": 7,
+        "accuracy": 1.0
+      },
+      "MANY_TO_ONE": {
+        "n": 5,
+        "accuracy": 1.0
+      },
+      "ONE_TO_MANY": {
+        "n": 3,
+        "accuracy": 1.0
+      },
+      "TOLERANCE": {
+        "n": 7,
+        "accuracy": 1.0
+      }
+    },
+    "exception_reason_accuracy_given_both_exception": 0.9444,
+    "exception_reason_n": 54,
+    "exception_reason_by_expected": {
+      "ambiguous_match": {
+        "n": 5,
+        "caught_as_exception": 5,
+        "reason_accuracy": 0.4
+      },
+      "amount_mismatch": {
+        "n": 10,
+        "caught_as_exception": 10,
+        "reason_accuracy": 1.0
+      },
+      "duplicate_bank_credit": {
+        "n": 4,
+        "caught_as_exception": 4,
+        "reason_accuracy": 1.0
+      },
+      "duplicate_gateway": {
+        "n": 4,
+        "caught_as_exception": 4,
+        "reason_accuracy": 1.0
+      },
+      "missing_bank_credit": {
+        "n": 7,
+        "caught_as_exception": 7,
+        "reason_accuracy": 1.0
+      },
+      "missing_settlement": {
+        "n": 7,
+        "caught_as_exception": 7,
+        "reason_accuracy": 1.0
+      },
+      "refund_full": {
+        "n": 1,
+        "caught_as_exception": 1,
+        "reason_accuracy": 1.0
+      },
+      "refund_partial": {
+        "n": 5,
+        "caught_as_exception": 5,
+        "reason_accuracy": 1.0
+      },
+      "unexplained_variance": {
+        "n": 4,
+        "caught_as_exception": 4,
+        "reason_accuracy": 1.0
+      },
+      "wrong_transaction": {
+        "n": 7,
+        "caught_as_exception": 7,
+        "reason_accuracy": 1.0
+      }
+    },
+    "confusion_expected_vs_predicted": {
+      "EXCEPTION->EXCEPTION": 54,
+      "MATCH->MATCH": 46
+    },
+    "ground_truth": "/Users/kaustubhh/Desktop/reconagent/evaluation_datasets/hard_100/ground_truth.csv",
+    "agent_meta": {
+      "dataset": "hard_100",
+      "adapter": {
+        "source_dir": "/Users/kaustubhh/Desktop/reconagent/evaluation_datasets/hard_100",
+        "dest_dir": "/Users/kaustubhh/Desktop/reconagent/evaluation_datasets/_work/hard_100/engine",
+        "normalize_ids": true,
+        "copied_ground_truth": false,
+        "invented_batch_ids": false,
+        "ledger_rows": 100,
+        "settlement_rows": 108,
+        "bank_rows": 98,
+        "money_validation": "OK",
+        "column_map": {
+          "merchant_order_id": "order_id",
+          "customer_name": "customer",
+          "net_amount": "net_amount",
+          "refund_amount": "refund_amount",
+          "value_date": "credit_date",
+          "debit_amount": "debit_amount",
+          "payout_batch": "settlement_batch_id"
+        }
+      },
+      "classifier_mode": "rule_based",
+      "schema_version": 1
+    }
+  }
+}

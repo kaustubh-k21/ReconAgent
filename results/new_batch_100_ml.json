@@ -1,0 +1,932 @@
+{
+  "summary": {
+    "total_transactions": 70,
+    "exact_matches": 35,
+    "fuzzy_matches": 24,
+    "exceptions": 11,
+    "match_rate": 0.8429,
+    "classifier_mode": "ml",
+    "self_scored_accuracy": 1.0,
+    "ground_truth_available": true,
+    "gemini_fallback_count": 0,
+    "escalation_attempted_count": 0,
+    "escalation_succeeded_count": 0
+  },
+  "exact_matches": [
+    {
+      "order_id": "ORD1001",
+      "amount": "39868.4",
+      "confidence": 1.0,
+      "note": "Net-of-standard-fee math ties out across all three sources within normal settlement timing."
+    },
+    {
+      "order_id": "ORD1002",
+      "amount": "6713.55",
+      "confidence": 1.0,
+      "note": "Net-of-standard-fee math ties out across all three sources within normal settlement timing."
+    },
+    {
+      "order_id": "ORD1003",
+      "amount": "26514.08",
+      "confidence": 1.0,
+      "note": "Net-of-standard-fee math ties out across all three sources within normal settlement timing."
+    },
+    {
+      "order_id": "ORD1007",
+      "amount": "17482.06",
+      "confidence": 1.0,
+      "note": "Net-of-standard-fee math ties out across all three sources within normal settlement timing."
+    },
+    {
+      "order_id": "ORD1008",
+      "amount": "38804.7",
+      "confidence": 1.0,
+      "note": "Net-of-standard-fee math ties out across all three sources within normal settlement timing."
+    },
+    {
+      "order_id": "ORD1009",
+      "amount": "39873.09",
+      "confidence": 1.0,
+      "note": "Net-of-standard-fee math ties out across all three sources within normal settlement timing."
+    },
+    {
+      "order_id": "ORD1010",
+      "amount": "13560.76",
+      "confidence": 1.0,
+      "note": "Net-of-standard-fee math ties out across all three sources within normal settlement timing."
+    },
+    {
+      "order_id": "ORD1012",
+      "amount": "28325.86",
+      "confidence": 1.0,
+      "note": "Net-of-standard-fee math ties out across all three sources within normal settlement timing."
+    },
+    {
+      "order_id": "ORD1013",
+      "amount": "17139.17",
+      "confidence": 1.0,
+      "note": "Net-of-standard-fee math ties out across all three sources within normal settlement timing."
+    },
+    {
+      "order_id": "ORD1016",
+      "amount": "42639.25",
+      "confidence": 1.0,
+      "note": "Net-of-standard-fee math ties out across all three sources within normal settlement timing."
+    },
+    {
+      "order_id": "ORD1019",
+      "amount": "39323.27",
+      "confidence": 1.0,
+      "note": "Net-of-standard-fee math ties out across all three sources within normal settlement timing."
+    },
+    {
+      "order_id": "ORD1022",
+      "amount": "11531.8",
+      "confidence": 1.0,
+      "note": "Net-of-standard-fee math ties out across all three sources within normal settlement timing."
+    },
+    {
+      "order_id": "ORD1023",
+      "amount": "26679.74",
+      "confidence": 1.0,
+      "note": "Net-of-standard-fee math ties out across all three sources within normal settlement timing."
+    },
+    {
+      "order_id": "ORD1025",
+      "amount": "38753.78",
+      "confidence": 1.0,
+      "note": "Net-of-standard-fee math ties out across all three sources within normal settlement timing."
+    },
+    {
+      "order_id": "ORD1026",
+      "amount": "30269.51",
+      "confidence": 1.0,
+      "note": "Net-of-standard-fee math ties out across all three sources within normal settlement timing."
+    },
+    {
+      "order_id": "ORD1027",
+      "amount": "42130.38",
+      "confidence": 1.0,
+      "note": "Net-of-standard-fee math ties out across all three sources within normal settlement timing."
+    },
+    {
+      "order_id": "ORD1034",
+      "amount": "20219.32",
+      "confidence": 1.0,
+      "note": "Net-of-standard-fee math ties out across all three sources within normal settlement timing."
+    },
+    {
+      "order_id": "ORD1041",
+      "amount": "14455.41",
+      "confidence": 1.0,
+      "note": "Net-of-standard-fee math ties out across all three sources within normal settlement timing."
+    },
+    {
+      "order_id": "ORD1042",
+      "amount": "41412.73",
+      "confidence": 1.0,
+      "note": "Net-of-standard-fee math ties out across all three sources within normal settlement timing."
+    },
+    {
+      "order_id": "ORD1043",
+      "amount": "43254.66",
+      "confidence": 1.0,
+      "note": "Net-of-standard-fee math ties out across all three sources within normal settlement timing."
+    },
+    {
+      "order_id": "ORD1044",
+      "amount": "26979.06",
+      "confidence": 1.0,
+      "note": "Net-of-standard-fee math ties out across all three sources within normal settlement timing."
+    },
+    {
+      "order_id": "ORD1045",
+      "amount": "42401.03",
+      "confidence": 1.0,
+      "note": "Net-of-standard-fee math ties out across all three sources within normal settlement timing."
+    },
+    {
+      "order_id": "ORD1046",
+      "amount": "4148.26",
+      "confidence": 1.0,
+      "note": "Net-of-standard-fee math ties out across all three sources within normal settlement timing."
+    },
+    {
+      "order_id": "ORD1047",
+      "amount": "9589.53",
+      "confidence": 1.0,
+      "note": "Net-of-standard-fee math ties out across all three sources within normal settlement timing."
+    },
+    {
+      "order_id": "ORD1049",
+      "amount": "42140.18",
+      "confidence": 1.0,
+      "note": "Net-of-standard-fee math ties out across all three sources within normal settlement timing."
+    },
+    {
+      "order_id": "ORD1050",
+      "amount": "44931.22",
+      "confidence": 1.0,
+      "note": "Net-of-standard-fee math ties out across all three sources within normal settlement timing."
+    },
+    {
+      "order_id": "ORD1051",
+      "amount": "9985.37",
+      "confidence": 1.0,
+      "note": "Net-of-standard-fee math ties out across all three sources within normal settlement timing."
+    },
+    {
+      "order_id": "ORD1052",
+      "amount": "39698.46",
+      "confidence": 1.0,
+      "note": "Net-of-standard-fee math ties out across all three sources within normal settlement timing."
+    },
+    {
+      "order_id": "ORD1056",
+      "amount": "27414.93",
+      "confidence": 1.0,
+      "note": "Net-of-standard-fee math ties out across all three sources within normal settlement timing."
+    },
+    {
+      "order_id": "ORD1058",
+      "amount": "40787.47",
+      "confidence": 1.0,
+      "note": "Net-of-standard-fee math ties out across all three sources within normal settlement timing."
+    },
+    {
+      "order_id": "ORD1059",
+      "amount": "19349.12",
+      "confidence": 1.0,
+      "note": "Net-of-standard-fee math ties out across all three sources within normal settlement timing."
+    },
+    {
+      "order_id": "ORD1066",
+      "amount": "33851.75",
+      "confidence": 1.0,
+      "note": "Net-of-standard-fee math ties out across all three sources within normal settlement timing."
+    },
+    {
+      "order_id": "ORD1067",
+      "amount": "36579.34",
+      "confidence": 1.0,
+      "note": "Net-of-standard-fee math ties out across all three sources within normal settlement timing."
+    },
+    {
+      "order_id": "ORD1068",
+      "amount": "33277.12",
+      "confidence": 1.0,
+      "note": "Net-of-standard-fee math ties out across all three sources within normal settlement timing."
+    },
+    {
+      "order_id": "ORD1069",
+      "amount": "30310.87",
+      "confidence": 1.0,
+      "note": "Net-of-standard-fee math ties out across all three sources within normal settlement timing."
+    }
+  ],
+  "fuzzy_matches": [
+    {
+      "order_id": "ORD1000",
+      "amount": "41134.56",
+      "confidence": 0.85,
+      "note": "Matched after allowing for: fee_variance (effective rate 3.00% vs standard 2%)"
+    },
+    {
+      "order_id": "ORD1004",
+      "amount": "44881.0",
+      "confidence": 0.85,
+      "note": "Matched after allowing for: rounding_diff (-0.50)"
+    },
+    {
+      "order_id": "ORD1005",
+      "amount": "2596.68",
+      "confidence": 0.85,
+      "note": "Matched after allowing for: tds_withheld"
+    },
+    {
+      "order_id": "ORD1011",
+      "amount": "42944.81",
+      "confidence": 0.85,
+      "note": "Matched after allowing for: settlement_to_bank_lag (3d)"
+    },
+    {
+      "order_id": "ORD1014",
+      "amount": "14924.94",
+      "confidence": 0.85,
+      "note": "Matched after allowing for: fee_variance (effective rate 2.50% vs standard 2%)"
+    },
+    {
+      "order_id": "ORD1015",
+      "amount": "36401.48",
+      "confidence": 0.85,
+      "note": "Matched after allowing for: settlement_to_bank_lag (4d)"
+    },
+    {
+      "order_id": "ORD1017",
+      "amount": "3579.96",
+      "confidence": 0.85,
+      "note": "Matched after allowing for: fee_variance (effective rate 1.50% vs standard 2%)"
+    },
+    {
+      "order_id": "ORD1020",
+      "amount": "34109.3",
+      "confidence": 0.85,
+      "note": "Matched after allowing for: rounding_diff (+0.60)"
+    },
+    {
+      "order_id": "ORD1021",
+      "amount": "29419.57",
+      "confidence": 0.85,
+      "note": "Matched after allowing for: tds_withheld"
+    },
+    {
+      "order_id": "ORD1029",
+      "amount": "4813.42",
+      "confidence": 0.85,
+      "note": "Matched after allowing for: fee_variance (effective rate 3.00% vs standard 2%)"
+    },
+    {
+      "order_id": "ORD1031",
+      "amount": "18416.65",
+      "confidence": 0.85,
+      "note": "Matched after allowing for: tds_withheld"
+    },
+    {
+      "order_id": "ORD1032",
+      "amount": "9025.76",
+      "confidence": 0.85,
+      "note": "Matched after allowing for: settlement_to_bank_lag (4d)"
+    },
+    {
+      "order_id": "ORD1035",
+      "amount": "44968.07",
+      "confidence": 0.85,
+      "note": "Matched after allowing for: settlement_to_bank_lag (4d)"
+    },
+    {
+      "order_id": "ORD1037",
+      "amount": "18346.29",
+      "confidence": 0.85,
+      "note": "Matched after allowing for: fee_variance (effective rate 3.00% vs standard 2%)"
+    },
+    {
+      "order_id": "ORD1039",
+      "amount": "19323.83",
+      "confidence": 0.85,
+      "note": "Matched after allowing for: settlement_to_bank_lag (4d)"
+    },
+    {
+      "order_id": "ORD1040",
+      "amount": "10187.69",
+      "confidence": 0.85,
+      "note": "Matched after allowing for: tds_withheld"
+    },
+    {
+      "order_id": "ORD1048",
+      "amount": "18112.47",
+      "confidence": 0.85,
+      "note": "Matched after allowing for: fee_variance (effective rate 2.50% vs standard 2%)"
+    },
+    {
+      "order_id": "ORD1054",
+      "amount": "29601.95",
+      "confidence": 0.85,
+      "note": "Matched after allowing for: fee_variance (effective rate 1.20% vs standard 2%)"
+    },
+    {
+      "order_id": "ORD1055",
+      "amount": "12268.73",
+      "confidence": 0.85,
+      "note": "Matched after allowing for: fee_variance (effective rate 2.50% vs standard 2%)"
+    },
+    {
+      "order_id": "ORD1057",
+      "amount": "28723.59",
+      "confidence": 0.85,
+      "note": "Matched after allowing for: tds_withheld"
+    },
+    {
+      "order_id": "ORD1061",
+      "amount": "25049.78",
+      "confidence": 0.85,
+      "note": "Matched after allowing for: fee_variance (effective rate 1.20% vs standard 2%)"
+    },
+    {
+      "order_id": "ORD1062",
+      "amount": "42554.77",
+      "confidence": 0.85,
+      "note": "Matched after allowing for: settlement_to_bank_lag (5d)"
+    },
+    {
+      "order_id": "ORD1063",
+      "amount": "25087.37",
+      "confidence": 0.85,
+      "note": "Matched after allowing for: tds_withheld"
+    },
+    {
+      "order_id": "ORD1065",
+      "amount": "30851.97",
+      "confidence": 0.85,
+      "note": "Matched after allowing for: rounding_diff (+0.60)"
+    }
+  ],
+  "exceptions": [
+    {
+      "order_id": "ORD1033",
+      "amount": "8665.22",
+      "cause": "refund_partial",
+      "confidence": 0.9975,
+      "reasoning": "Model predicted refund_partial (100% confidence) for ORD1033, based mainly on: appears 1x in the ledger; settlement-vs-bank shortfall of 4668.81; shortfall of 55% of settled amount.",
+      "actually_used": "ml"
+    },
+    {
+      "order_id": "ORD1006",
+      "amount": "7619.2",
+      "cause": "missing_settlement",
+      "confidence": 1.0,
+      "reasoning": "Model predicted missing_settlement (100% confidence) for ORD1006, based mainly on: appears 1x in the ledger; settlement-vs-bank shortfall of 0.00; shortfall of 0% of settled amount.",
+      "actually_used": "ml"
+    },
+    {
+      "order_id": "ORD1053",
+      "amount": "7519.73",
+      "cause": "refund_partial",
+      "confidence": 0.9951973684210526,
+      "reasoning": "Model predicted refund_partial (100% confidence) for ORD1053, based mainly on: appears 1x in the ledger; settlement-vs-bank shortfall of 3276.93; shortfall of 44% of settled amount.",
+      "actually_used": "ml"
+    },
+    {
+      "order_id": "ORD1038",
+      "amount": "44346.24",
+      "cause": "duplicate_entry",
+      "confidence": 0.9930506032688956,
+      "reasoning": "Model predicted duplicate_entry (99% confidence) for ORD1038, based mainly on: appears 2x in the ledger; settlement-vs-bank shortfall of 0.00; shortfall of 0% of settled amount.",
+      "actually_used": "ml"
+    },
+    {
+      "order_id": "ORD1024",
+      "amount": "3659.19",
+      "cause": "refund_partial",
+      "confidence": 0.9921428571428571,
+      "reasoning": "Model predicted refund_partial (99% confidence) for ORD1024, based mainly on: appears 1x in the ledger; settlement-vs-bank shortfall of 813.88; shortfall of 23% of settled amount.",
+      "actually_used": "ml"
+    },
+    {
+      "order_id": "ORD1018",
+      "amount": "21650.07",
+      "cause": "duplicate_entry",
+      "confidence": 0.9950116616792818,
+      "reasoning": "Model predicted duplicate_entry (100% confidence) for ORD1018, based mainly on: appears 2x in the ledger; settlement-vs-bank shortfall of 0.00; shortfall of 0% of settled amount.",
+      "actually_used": "ml"
+    },
+    {
+      "order_id": "ORD1028",
+      "amount": "21547.3",
+      "cause": "duplicate_entry",
+      "confidence": 0.9977090301003344,
+      "reasoning": "Model predicted duplicate_entry (100% confidence) for ORD1028, based mainly on: appears 2x in the ledger; settlement-vs-bank shortfall of 0.00; shortfall of 0% of settled amount.",
+      "actually_used": "ml"
+    },
+    {
+      "order_id": "ORD1030",
+      "amount": "21282.6",
+      "cause": "duplicate_entry",
+      "confidence": 0.9977090301003344,
+      "reasoning": "Model predicted duplicate_entry (100% confidence) for ORD1030, based mainly on: appears 2x in the ledger; settlement-vs-bank shortfall of 0.00; shortfall of 0% of settled amount.",
+      "actually_used": "ml"
+    },
+    {
+      "order_id": "ORD1036",
+      "amount": "18585.43",
+      "cause": "duplicate_entry",
+      "confidence": 0.9977090301003344,
+      "reasoning": "Model predicted duplicate_entry (100% confidence) for ORD1036, based mainly on: appears 2x in the ledger; settlement-vs-bank shortfall of 0.00; shortfall of 0% of settled amount.",
+      "actually_used": "ml"
+    },
+    {
+      "order_id": "ORD1060",
+      "amount": "15343.27",
+      "cause": "refund_partial",
+      "confidence": 0.9949883383207182,
+      "reasoning": "Model predicted refund_partial (99% confidence) for ORD1060, based mainly on: appears 1x in the ledger; settlement-vs-bank shortfall of 3979.12; shortfall of 26% of settled amount.",
+      "actually_used": "ml"
+    },
+    {
+      "order_id": "ORD1064",
+      "amount": "14217.5",
+      "cause": "duplicate_entry",
+      "confidence": 0.9950116616792818,
+      "reasoning": "Model predicted duplicate_entry (100% confidence) for ORD1064, based mainly on: appears 2x in the ledger; settlement-vs-bank shortfall of 0.00; shortfall of 0% of settled amount.",
+      "actually_used": "ml"
+    }
+  ],
+  "exception_cause_breakdown": {
+    "refund_partial": 4,
+    "missing_settlement": 1,
+    "duplicate_entry": 6
+  },
+  "ground_truth_scoring": [
+    {
+      "order_id": "ORD1000",
+      "true_cause": "fee_variance",
+      "pipeline_outcome": "matched_clean_or_tolerance",
+      "correct": true
+    },
+    {
+      "order_id": "ORD1001",
+      "true_cause": "clean",
+      "pipeline_outcome": "matched_clean_or_tolerance",
+      "correct": true
+    },
+    {
+      "order_id": "ORD1002",
+      "true_cause": "clean",
+      "pipeline_outcome": "matched_clean_or_tolerance",
+      "correct": true
+    },
+    {
+      "order_id": "ORD1003",
+      "true_cause": "clean",
+      "pipeline_outcome": "matched_clean_or_tolerance",
+      "correct": true
+    },
+    {
+      "order_id": "ORD1004",
+      "true_cause": "rounding",
+      "pipeline_outcome": "matched_clean_or_tolerance",
+      "correct": true
+    },
+    {
+      "order_id": "ORD1005",
+      "true_cause": "tds_deduction",
+      "pipeline_outcome": "matched_clean_or_tolerance",
+      "correct": true
+    },
+    {
+      "order_id": "ORD1006",
+      "true_cause": "missing_settlement",
+      "pipeline_outcome": "missing_settlement",
+      "correct": true
+    },
+    {
+      "order_id": "ORD1007",
+      "true_cause": "clean",
+      "pipeline_outcome": "matched_clean_or_tolerance",
+      "correct": true
+    },
+    {
+      "order_id": "ORD1008",
+      "true_cause": "clean",
+      "pipeline_outcome": "matched_clean_or_tolerance",
+      "correct": true
+    },
+    {
+      "order_id": "ORD1009",
+      "true_cause": "clean",
+      "pipeline_outcome": "matched_clean_or_tolerance",
+      "correct": true
+    },
+    {
+      "order_id": "ORD1010",
+      "true_cause": "clean",
+      "pipeline_outcome": "matched_clean_or_tolerance",
+      "correct": true
+    },
+    {
+      "order_id": "ORD1011",
+      "true_cause": "timing_lag",
+      "pipeline_outcome": "matched_clean_or_tolerance",
+      "correct": true
+    },
+    {
+      "order_id": "ORD1012",
+      "true_cause": "clean",
+      "pipeline_outcome": "matched_clean_or_tolerance",
+      "correct": true
+    },
+    {
+      "order_id": "ORD1013",
+      "true_cause": "clean",
+      "pipeline_outcome": "matched_clean_or_tolerance",
+      "correct": true
+    },
+    {
+      "order_id": "ORD1014",
+      "true_cause": "fee_variance",
+      "pipeline_outcome": "matched_clean_or_tolerance",
+      "correct": true
+    },
+    {
+      "order_id": "ORD1015",
+      "true_cause": "timing_lag",
+      "pipeline_outcome": "matched_clean_or_tolerance",
+      "correct": true
+    },
+    {
+      "order_id": "ORD1016",
+      "true_cause": "clean",
+      "pipeline_outcome": "matched_clean_or_tolerance",
+      "correct": true
+    },
+    {
+      "order_id": "ORD1017",
+      "true_cause": "fee_variance",
+      "pipeline_outcome": "matched_clean_or_tolerance",
+      "correct": true
+    },
+    {
+      "order_id": "ORD1018",
+      "true_cause": "duplicate_entry",
+      "pipeline_outcome": "duplicate_entry",
+      "correct": true
+    },
+    {
+      "order_id": "ORD1019",
+      "true_cause": "clean",
+      "pipeline_outcome": "matched_clean_or_tolerance",
+      "correct": true
+    },
+    {
+      "order_id": "ORD1020",
+      "true_cause": "rounding",
+      "pipeline_outcome": "matched_clean_or_tolerance",
+      "correct": true
+    },
+    {
+      "order_id": "ORD1021",
+      "true_cause": "tds_deduction",
+      "pipeline_outcome": "matched_clean_or_tolerance",
+      "correct": true
+    },
+    {
+      "order_id": "ORD1022",
+      "true_cause": "clean",
+      "pipeline_outcome": "matched_clean_or_tolerance",
+      "correct": true
+    },
+    {
+      "order_id": "ORD1023",
+      "true_cause": "clean",
+      "pipeline_outcome": "matched_clean_or_tolerance",
+      "correct": true
+    },
+    {
+      "order_id": "ORD1024",
+      "true_cause": "refund_partial",
+      "pipeline_outcome": "refund_partial",
+      "correct": true
+    },
+    {
+      "order_id": "ORD1025",
+      "true_cause": "clean",
+      "pipeline_outcome": "matched_clean_or_tolerance",
+      "correct": true
+    },
+    {
+      "order_id": "ORD1026",
+      "true_cause": "clean",
+      "pipeline_outcome": "matched_clean_or_tolerance",
+      "correct": true
+    },
+    {
+      "order_id": "ORD1027",
+      "true_cause": "clean",
+      "pipeline_outcome": "matched_clean_or_tolerance",
+      "correct": true
+    },
+    {
+      "order_id": "ORD1028",
+      "true_cause": "duplicate_entry",
+      "pipeline_outcome": "duplicate_entry",
+      "correct": true
+    },
+    {
+      "order_id": "ORD1029",
+      "true_cause": "fee_variance",
+      "pipeline_outcome": "matched_clean_or_tolerance",
+      "correct": true
+    },
+    {
+      "order_id": "ORD1030",
+      "true_cause": "duplicate_entry",
+      "pipeline_outcome": "duplicate_entry",
+      "correct": true
+    },
+    {
+      "order_id": "ORD1031",
+      "true_cause": "tds_deduction",
+      "pipeline_outcome": "matched_clean_or_tolerance",
+      "correct": true
+    },
+    {
+      "order_id": "ORD1032",
+      "true_cause": "timing_lag",
+      "pipeline_outcome": "matched_clean_or_tolerance",
+      "correct": true
+    },
+    {
+      "order_id": "ORD1033",
+      "true_cause": "refund_partial",
+      "pipeline_outcome": "refund_partial",
+      "correct": true
+    },
+    {
+      "order_id": "ORD1034",
+      "true_cause": "clean",
+      "pipeline_outcome": "matched_clean_or_tolerance",
+      "correct": true
+    },
+    {
+      "order_id": "ORD1035",
+      "true_cause": "timing_lag",
+      "pipeline_outcome": "matched_clean_or_tolerance",
+      "correct": true
+    },
+    {
+      "order_id": "ORD1036",
+      "true_cause": "duplicate_entry",
+      "pipeline_outcome": "duplicate_entry",
+      "correct": true
+    },
+    {
+      "order_id": "ORD1037",
+      "true_cause": "fee_variance",
+      "pipeline_outcome": "matched_clean_or_tolerance",
+      "correct": true
+    },
+    {
+      "order_id": "ORD1038",
+      "true_cause": "duplicate_entry",
+      "pipeline_outcome": "duplicate_entry",
+      "correct": true
+    },
+    {
+      "order_id": "ORD1039",
+      "true_cause": "timing_lag",
+      "pipeline_outcome": "matched_clean_or_tolerance",
+      "correct": true
+    },
+    {
+      "order_id": "ORD1040",
+      "true_cause": "tds_deduction",
+      "pipeline_outcome": "matched_clean_or_tolerance",
+      "correct": true
+    },
+    {
+      "order_id": "ORD1041",
+      "true_cause": "clean",
+      "pipeline_outcome": "matched_clean_or_tolerance",
+      "correct": true
+    },
+    {
+      "order_id": "ORD1042",
+      "true_cause": "clean",
+      "pipeline_outcome": "matched_clean_or_tolerance",
+      "correct": true
+    },
+    {
+      "order_id": "ORD1043",
+      "true_cause": "clean",
+      "pipeline_outcome": "matched_clean_or_tolerance",
+      "correct": true
+    },
+    {
+      "order_id": "ORD1044",
+      "true_cause": "clean",
+      "pipeline_outcome": "matched_clean_or_tolerance",
+      "correct": true
+    },
+    {
+      "order_id": "ORD1045",
+      "true_cause": "clean",
+      "pipeline_outcome": "matched_clean_or_tolerance",
+      "correct": true
+    },
+    {
+      "order_id": "ORD1046",
+      "true_cause": "clean",
+      "pipeline_outcome": "matched_clean_or_tolerance",
+      "correct": true
+    },
+    {
+      "order_id": "ORD1047",
+      "true_cause": "clean",
+      "pipeline_outcome": "matched_clean_or_tolerance",
+      "correct": true
+    },
+    {
+      "order_id": "ORD1048",
+      "true_cause": "fee_variance",
+      "pipeline_outcome": "matched_clean_or_tolerance",
+      "correct": true
+    },
+    {
+      "order_id": "ORD1049",
+      "true_cause": "clean",
+      "pipeline_outcome": "matched_clean_or_tolerance",
+      "correct": true
+    },
+    {
+      "order_id": "ORD1050",
+      "true_cause": "clean",
+      "pipeline_outcome": "matched_clean_or_tolerance",
+      "correct": true
+    },
+    {
+      "order_id": "ORD1051",
+      "true_cause": "clean",
+      "pipeline_outcome": "matched_clean_or_tolerance",
+      "correct": true
+    },
+    {
+      "order_id": "ORD1052",
+      "true_cause": "clean",
+      "pipeline_outcome": "matched_clean_or_tolerance",
+      "correct": true
+    },
+    {
+      "order_id": "ORD1053",
+      "true_cause": "refund_partial",
+      "pipeline_outcome": "refund_partial",
+      "correct": true
+    },
+    {
+      "order_id": "ORD1054",
+      "true_cause": "fee_variance",
+      "pipeline_outcome": "matched_clean_or_tolerance",
+      "correct": true
+    },
+    {
+      "order_id": "ORD1055",
+      "true_cause": "fee_variance",
+      "pipeline_outcome": "matched_clean_or_tolerance",
+      "correct": true
+    },
+    {
+      "order_id": "ORD1056",
+      "true_cause": "clean",
+      "pipeline_outcome": "matched_clean_or_tolerance",
+      "correct": true
+    },
+    {
+      "order_id": "ORD1057",
+      "true_cause": "tds_deduction",
+      "pipeline_outcome": "matched_clean_or_tolerance",
+      "correct": true
+    },
+    {
+      "order_id": "ORD1058",
+      "true_cause": "clean",
+      "pipeline_outcome": "matched_clean_or_tolerance",
+      "correct": true
+    },
+    {
+      "order_id": "ORD1059",
+      "true_cause": "clean",
+      "pipeline_outcome": "matched_clean_or_tolerance",
+      "correct": true
+    },
+    {
+      "order_id": "ORD1060",
+      "true_cause": "refund_partial",
+      "pipeline_outcome": "refund_partial",
+      "correct": true
+    },
+    {
+      "order_id": "ORD1061",
+      "true_cause": "fee_variance",
+      "pipeline_outcome": "matched_clean_or_tolerance",
+      "correct": true
+    },
+    {
+      "order_id": "ORD1062",
+      "true_cause": "timing_lag",
+      "pipeline_outcome": "matched_clean_or_tolerance",
+      "correct": true
+    },
+    {
+      "order_id": "ORD1063",
+      "true_cause": "tds_deduction",
+      "pipeline_outcome": "matched_clean_or_tolerance",
+      "correct": true
+    },
+    {
+      "order_id": "ORD1064",
+      "true_cause": "duplicate_entry",
+      "pipeline_outcome": "duplicate_entry",
+      "correct": true
+    },
+    {
+      "order_id": "ORD1065",
+      "true_cause": "rounding",
+      "pipeline_outcome": "matched_clean_or_tolerance",
+      "correct": true
+    },
+    {
+      "order_id": "ORD1066",
+      "true_cause": "clean",
+      "pipeline_outcome": "matched_clean_or_tolerance",
+      "correct": true
+    },
+    {
+      "order_id": "ORD1067",
+      "true_cause": "clean",
+      "pipeline_outcome": "matched_clean_or_tolerance",
+      "correct": true
+    },
+    {
+      "order_id": "ORD1068",
+      "true_cause": "clean",
+      "pipeline_outcome": "matched_clean_or_tolerance",
+      "correct": true
+    },
+    {
+      "order_id": "ORD1069",
+      "true_cause": "clean",
+      "pipeline_outcome": "matched_clean_or_tolerance",
+      "correct": true
+    }
+  ],
+  "accuracy_by_cause": {
+    "fee_variance": {
+      "correct": 9,
+      "total": 9,
+      "accuracy": 1.0
+    },
+    "clean": {
+      "correct": 35,
+      "total": 35,
+      "accuracy": 1.0
+    },
+    "rounding": {
+      "correct": 3,
+      "total": 3,
+      "accuracy": 1.0
+    },
+    "tds_deduction": {
+      "correct": 6,
+      "total": 6,
+      "accuracy": 1.0
+    },
+    "missing_settlement": {
+      "correct": 1,
+      "total": 1,
+      "accuracy": 1.0
+    },
+    "timing_lag": {
+      "correct": 6,
+      "total": 6,
+      "accuracy": 1.0
+    },
+    "duplicate_entry": {
+      "correct": 6,
+      "total": 6,
+      "accuracy": 1.0
+    },
+    "refund_partial": {
+      "correct": 4,
+      "total": 4,
+      "accuracy": 1.0
+    }
+  }
+}

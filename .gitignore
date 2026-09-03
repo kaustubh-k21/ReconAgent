@@ -1,0 +1,16 @@
+# Generated ingest copies of external eval files — not source data
+evaluation_datasets/_work/
+**/.engine_ingest/
+
+# Finance Controller upload batches
+controller_batches/
+
+# Local environment
+venv/
+__pycache__/
+*.pyc
+.DS_Store
+.env
+.env.*
+*.egg-info/
+.pytest_cache/

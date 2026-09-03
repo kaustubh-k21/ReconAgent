@@ -1,0 +1,17 @@
+{
+  "suites": [
+    "near_id_collision",
+    "duplicate_identity",
+    "amount_threshold",
+    "n1_distractor",
+    "fee_tds_conflict",
+    "sla_boundary",
+    "reversal_debit",
+    "locale_money_ok",
+    "malformed_money",
+    "missing_amount"
+  ],
+  "protocol": "adversarial_independent",
+  "heldout_untouched": true,
+  "generator": "_generate_adversarial.py"
+}

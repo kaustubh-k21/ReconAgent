@@ -1,0 +1,5 @@
+order_id,order_date,amount,currency,customer_name,channel
+ADVLOC1,2026-07-08,"₹4,500",INR,Locale Rupee,UPI
+LOC001,2026-07-08,1250.25,INR,Ballast 1,UPI
+LOC002,2026-07-08,1500.5,INR,Ballast 2,UPI
+LOC003,2026-07-08,1750.75,INR,Ballast 3,UPI

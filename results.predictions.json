@@ -1,0 +1,907 @@
+{
+  "schema_version": 1,
+  "classifier_mode": "gemini_fallback_to_rule_based",
+  "adapter": {
+    "source_dir": "/Users/kaustubhh/Desktop/reconagent/data",
+    "dest_dir": "/Users/kaustubhh/Desktop/reconagent/data/.engine_ingest",
+    "adapted": false,
+    "schema": "engine",
+    "normalize_ids": false,
+    "money_validation": "OK",
+    "ledger_rows": 73,
+    "settlement_rows": 69,
+    "bank_rows": 63,
+    "column_map": {
+      "merchant_order_id": "order_id",
+      "customer_name": "customer",
+      "gross_amount": "amount"
+    }
+  },
+  "generated_at": "2026-08-31T01:14:56.532394",
+  "saw_ground_truth": false,
+  "predictions": [
+    {
+      "order_id": "ORD1001",
+      "canonical_id": "ord1001",
+      "decision": "MATCH",
+      "match_type": "EXACT",
+      "exception_reason": null,
+      "confidence": 1.0,
+      "amount": 39868.4,
+      "matched_by_rule": "exact_standard_fee",
+      "note": null,
+      "symptoms": []
+    },
+    {
+      "order_id": "ORD1002",
+      "canonical_id": "ord1002",
+      "decision": "MATCH",
+      "match_type": "EXACT",
+      "exception_reason": null,
+      "confidence": 1.0,
+      "amount": 6713.55,
+      "matched_by_rule": "exact_standard_fee",
+      "note": null,
+      "symptoms": []
+    },
+    {
+      "order_id": "ORD1003",
+      "canonical_id": "ord1003",
+      "decision": "MATCH",
+      "match_type": "EXACT",
+      "exception_reason": null,
+      "confidence": 1.0,
+      "amount": 26514.08,
+      "matched_by_rule": "exact_standard_fee",
+      "note": null,
+      "symptoms": []
+    },
+    {
+      "order_id": "ORD1007",
+      "canonical_id": "ord1007",
+      "decision": "MATCH",
+      "match_type": "EXACT",
+      "exception_reason": null,
+      "confidence": 1.0,
+      "amount": 27017.04,
+      "matched_by_rule": "exact_standard_fee",
+      "note": null,
+      "symptoms": []
+    },
+    {
+      "order_id": "ORD1009",
+      "canonical_id": "ord1009",
+      "decision": "MATCH",
+      "match_type": "EXACT",
+      "exception_reason": null,
+      "confidence": 1.0,
+      "amount": 29022.8,
+      "matched_by_rule": "exact_standard_fee",
+      "note": null,
+      "symptoms": []
+    },
+    {
+      "order_id": "ORD1010",
+      "canonical_id": "ord1010",
+      "decision": "MATCH",
+      "match_type": "EXACT",
+      "exception_reason": null,
+      "confidence": 1.0,
+      "amount": 7538.02,
+      "matched_by_rule": "exact_standard_fee",
+      "note": null,
+      "symptoms": []
+    },
+    {
+      "order_id": "ORD1012",
+      "canonical_id": "ord1012",
+      "decision": "MATCH",
+      "match_type": "EXACT",
+      "exception_reason": null,
+      "confidence": 1.0,
+      "amount": 28933.25,
+      "matched_by_rule": "exact_standard_fee",
+      "note": null,
+      "symptoms": []
+    },
+    {
+      "order_id": "ORD1013",
+      "canonical_id": "ord1013",
+      "decision": "MATCH",
+      "match_type": "EXACT",
+      "exception_reason": null,
+      "confidence": 1.0,
+      "amount": 34431.73,
+      "matched_by_rule": "exact_standard_fee",
+      "note": null,
+      "symptoms": []
+    },
+    {
+      "order_id": "ORD1016",
+      "canonical_id": "ord1016",
+      "decision": "MATCH",
+      "match_type": "EXACT",
+      "exception_reason": null,
+      "confidence": 1.0,
+      "amount": 39571.43,
+      "matched_by_rule": "exact_standard_fee",
+      "note": null,
+      "symptoms": []
+    },
+    {
+      "order_id": "ORD1019",
+      "canonical_id": "ord1019",
+      "decision": "MATCH",
+      "match_type": "EXACT",
+      "exception_reason": null,
+      "confidence": 1.0,
+      "amount": 27493.43,
+      "matched_by_rule": "exact_standard_fee",
+      "note": null,
+      "symptoms": []
+    },
+    {
+      "order_id": "ORD1022",
+      "canonical_id": "ord1022",
+      "decision": "MATCH",
+      "match_type": "EXACT",
+      "exception_reason": null,
+      "confidence": 1.0,
+      "amount": 1436.02,
+      "matched_by_rule": "exact_standard_fee",
+      "note": null,
+      "symptoms": []
+    },
+    {
+      "order_id": "ORD1023",
+      "canonical_id": "ord1023",
+      "decision": "MATCH",
+      "match_type": "EXACT",
+      "exception_reason": null,
+      "confidence": 1.0,
+      "amount": 3659.19,
+      "matched_by_rule": "exact_standard_fee",
+      "note": null,
+      "symptoms": []
+    },
+    {
+      "order_id": "ORD1025",
+      "canonical_id": "ord1025",
+      "decision": "MATCH",
+      "match_type": "EXACT",
+      "exception_reason": null,
+      "confidence": 1.0,
+      "amount": 40791.19,
+      "matched_by_rule": "exact_standard_fee",
+      "note": null,
+      "symptoms": []
+    },
+    {
+      "order_id": "ORD1026",
+      "canonical_id": "ord1026",
+      "decision": "MATCH",
+      "match_type": "EXACT",
+      "exception_reason": null,
+      "confidence": 1.0,
+      "amount": 11091.21,
+      "matched_by_rule": "exact_standard_fee",
+      "note": null,
+      "symptoms": []
+    },
+    {
+      "order_id": "ORD1027",
+      "canonical_id": "ord1027",
+      "decision": "MATCH",
+      "match_type": "EXACT",
+      "exception_reason": null,
+      "confidence": 1.0,
+      "amount": 6387.88,
+      "matched_by_rule": "exact_standard_fee",
+      "note": null,
+      "symptoms": []
+    },
+    {
+      "order_id": "ORD1034",
+      "canonical_id": "ord1034",
+      "decision": "MATCH",
+      "match_type": "EXACT",
+      "exception_reason": null,
+      "confidence": 1.0,
+      "amount": 8665.22,
+      "matched_by_rule": "exact_standard_fee",
+      "note": null,
+      "symptoms": []
+    },
+    {
+      "order_id": "ORD1041",
+      "canonical_id": "ord1041",
+      "decision": "MATCH",
+      "match_type": "EXACT",
+      "exception_reason": null,
+      "confidence": 1.0,
+      "amount": 43100.64,
+      "matched_by_rule": "exact_standard_fee",
+      "note": null,
+      "symptoms": []
+    },
+    {
+      "order_id": "ORD1042",
+      "canonical_id": "ord1042",
+      "decision": "MATCH",
+      "match_type": "EXACT",
+      "exception_reason": null,
+      "confidence": 1.0,
+      "amount": 13703.5,
+      "matched_by_rule": "exact_standard_fee",
+      "note": null,
+      "symptoms": []
+    },
+    {
+      "order_id": "ORD1043",
+      "canonical_id": "ord1043",
+      "decision": "MATCH",
+      "match_type": "EXACT",
+      "exception_reason": null,
+      "confidence": 1.0,
+      "amount": 14455.41,
+      "matched_by_rule": "exact_standard_fee",
+      "note": null,
+      "symptoms": []
+    },
+    {
+      "order_id": "ORD1044",
+      "canonical_id": "ord1044",
+      "decision": "MATCH",
+      "match_type": "EXACT",
+      "exception_reason": null,
+      "confidence": 1.0,
+      "amount": 41412.73,
+      "matched_by_rule": "exact_standard_fee",
+      "note": null,
+      "symptoms": []
+    },
+    {
+      "order_id": "ORD1045",
+      "canonical_id": "ord1045",
+      "decision": "MATCH",
+      "match_type": "EXACT",
+      "exception_reason": null,
+      "confidence": 1.0,
+      "amount": 43254.66,
+      "matched_by_rule": "exact_standard_fee",
+      "note": null,
+      "symptoms": []
+    },
+    {
+      "order_id": "ORD1046",
+      "canonical_id": "ord1046",
+      "decision": "MATCH",
+      "match_type": "EXACT",
+      "exception_reason": null,
+      "confidence": 1.0,
+      "amount": 26979.06,
+      "matched_by_rule": "exact_standard_fee",
+      "note": null,
+      "symptoms": []
+    },
+    {
+      "order_id": "ORD1047",
+      "canonical_id": "ord1047",
+      "decision": "MATCH",
+      "match_type": "EXACT",
+      "exception_reason": null,
+      "confidence": 1.0,
+      "amount": 42401.03,
+      "matched_by_rule": "exact_standard_fee",
+      "note": null,
+      "symptoms": []
+    },
+    {
+      "order_id": "ORD1049",
+      "canonical_id": "ord1049",
+      "decision": "MATCH",
+      "match_type": "EXACT",
+      "exception_reason": null,
+      "confidence": 1.0,
+      "amount": 30302.81,
+      "matched_by_rule": "exact_standard_fee",
+      "note": null,
+      "symptoms": []
+    },
+    {
+      "order_id": "ORD1050",
+      "canonical_id": "ord1050",
+      "decision": "MATCH",
+      "match_type": "EXACT",
+      "exception_reason": null,
+      "confidence": 1.0,
+      "amount": 18112.47,
+      "matched_by_rule": "exact_standard_fee",
+      "note": null,
+      "symptoms": []
+    },
+    {
+      "order_id": "ORD1051",
+      "canonical_id": "ord1051",
+      "decision": "MATCH",
+      "match_type": "EXACT",
+      "exception_reason": null,
+      "confidence": 1.0,
+      "amount": 41841.32,
+      "matched_by_rule": "exact_standard_fee",
+      "note": null,
+      "symptoms": []
+    },
+    {
+      "order_id": "ORD1052",
+      "canonical_id": "ord1052",
+      "decision": "MATCH",
+      "match_type": "EXACT",
+      "exception_reason": null,
+      "confidence": 1.0,
+      "amount": 28141.59,
+      "matched_by_rule": "exact_standard_fee",
+      "note": null,
+      "symptoms": []
+    },
+    {
+      "order_id": "ORD1056",
+      "canonical_id": "ord1056",
+      "decision": "MATCH",
+      "match_type": "EXACT",
+      "exception_reason": null,
+      "confidence": 1.0,
+      "amount": 5109.6,
+      "matched_by_rule": "exact_standard_fee",
+      "note": null,
+      "symptoms": []
+    },
+    {
+      "order_id": "ORD1058",
+      "canonical_id": "ord1058",
+      "decision": "MATCH",
+      "match_type": "EXACT",
+      "exception_reason": null,
+      "confidence": 1.0,
+      "amount": 27414.93,
+      "matched_by_rule": "exact_standard_fee",
+      "note": null,
+      "symptoms": []
+    },
+    {
+      "order_id": "ORD1059",
+      "canonical_id": "ord1059",
+      "decision": "MATCH",
+      "match_type": "EXACT",
+      "exception_reason": null,
+      "confidence": 1.0,
+      "amount": 28723.59,
+      "matched_by_rule": "exact_standard_fee",
+      "note": null,
+      "symptoms": []
+    },
+    {
+      "order_id": "ORD1066",
+      "canonical_id": "ord1066",
+      "decision": "MATCH",
+      "match_type": "EXACT",
+      "exception_reason": null,
+      "confidence": 1.0,
+      "amount": 16930.11,
+      "matched_by_rule": "exact_standard_fee",
+      "note": null,
+      "symptoms": []
+    },
+    {
+      "order_id": "ORD1067",
+      "canonical_id": "ord1067",
+      "decision": "MATCH",
+      "match_type": "EXACT",
+      "exception_reason": null,
+      "confidence": 1.0,
+      "amount": 2361.38,
+      "matched_by_rule": "exact_standard_fee",
+      "note": null,
+      "symptoms": []
+    },
+    {
+      "order_id": "ORD1068",
+      "canonical_id": "ord1068",
+      "decision": "MATCH",
+      "match_type": "EXACT",
+      "exception_reason": null,
+      "confidence": 1.0,
+      "amount": 9848.41,
+      "matched_by_rule": "exact_standard_fee",
+      "note": null,
+      "symptoms": []
+    },
+    {
+      "order_id": "ORD1069",
+      "canonical_id": "ord1069",
+      "decision": "MATCH",
+      "match_type": "EXACT",
+      "exception_reason": null,
+      "confidence": 1.0,
+      "amount": 35215.17,
+      "matched_by_rule": "exact_standard_fee",
+      "note": null,
+      "symptoms": []
+    },
+    {
+      "order_id": "ORD1000",
+      "canonical_id": "ord1000",
+      "decision": "MATCH",
+      "match_type": "TOLERANCE",
+      "exception_reason": null,
+      "confidence": 0.9,
+      "amount": 41134.56,
+      "matched_by_rule": "tolerance_fee_tds_round",
+      "note": "Matched after allowing for: rounding_diff (+0.60)",
+      "symptoms": []
+    },
+    {
+      "order_id": "ORD1008",
+      "canonical_id": "ord1008",
+      "decision": "MATCH",
+      "match_type": "FUZZY",
+      "exception_reason": null,
+      "confidence": 0.9,
+      "amount": 38804.7,
+      "matched_by_rule": "date_lag",
+      "note": "Matched after allowing for: settlement_to_bank_lag (5d)",
+      "symptoms": []
+    },
+    {
+      "order_id": "ORD1011",
+      "canonical_id": "ord1011",
+      "decision": "MATCH",
+      "match_type": "TOLERANCE",
+      "exception_reason": null,
+      "confidence": 0.9,
+      "amount": 34407.32,
+      "matched_by_rule": "tolerance_fee_tds_round",
+      "note": "Matched after allowing for: fee_variance (2.50%)",
+      "symptoms": []
+    },
+    {
+      "order_id": "ORD1014",
+      "canonical_id": "ord1014",
+      "decision": "MATCH",
+      "match_type": "TOLERANCE",
+      "exception_reason": null,
+      "confidence": 0.9,
+      "amount": 14924.94,
+      "matched_by_rule": "tolerance_fee_tds_round",
+      "note": "Matched after allowing for: rounding_diff (+0.40)",
+      "symptoms": []
+    },
+    {
+      "order_id": "ORD1015",
+      "canonical_id": "ord1015",
+      "decision": "MATCH",
+      "match_type": "TOLERANCE",
+      "exception_reason": null,
+      "confidence": 0.9,
+      "amount": 36401.48,
+      "matched_by_rule": "tolerance_fee_tds_round",
+      "note": "Matched after allowing for: tds_withheld (7.28)",
+      "symptoms": []
+    },
+    {
+      "order_id": "ORD1017",
+      "canonical_id": "ord1017",
+      "decision": "MATCH",
+      "match_type": "TOLERANCE",
+      "exception_reason": null,
+      "confidence": 0.9,
+      "amount": 22126.58,
+      "matched_by_rule": "tolerance_fee_tds_round",
+      "note": "Matched after allowing for: tds_withheld (4.43)",
+      "symptoms": []
+    },
+    {
+      "order_id": "ORD1029",
+      "canonical_id": "ord1029",
+      "decision": "MATCH",
+      "match_type": "TOLERANCE",
+      "exception_reason": null,
+      "confidence": 0.9,
+      "amount": 29824.73,
+      "matched_by_rule": "tolerance_fee_tds_round",
+      "note": "Matched after allowing for: rounding_diff (+0.60)",
+      "symptoms": []
+    },
+    {
+      "order_id": "ORD1032",
+      "canonical_id": "ord1032",
+      "decision": "MATCH",
+      "match_type": "TOLERANCE",
+      "exception_reason": null,
+      "confidence": 0.9,
+      "amount": 8964.3,
+      "matched_by_rule": "tolerance_fee_tds_round",
+      "note": "Matched after allowing for: tds_withheld (1.79)",
+      "symptoms": []
+    },
+    {
+      "order_id": "ORD1035",
+      "canonical_id": "ord1035",
+      "decision": "MATCH",
+      "match_type": "TOLERANCE",
+      "exception_reason": null,
+      "confidence": 0.9,
+      "amount": 41585.32,
+      "matched_by_rule": "tolerance_fee_tds_round",
+      "note": "Matched after allowing for: tds_withheld (8.32)",
+      "symptoms": []
+    },
+    {
+      "order_id": "ORD1037",
+      "canonical_id": "ord1037",
+      "decision": "MATCH",
+      "match_type": "TOLERANCE",
+      "exception_reason": null,
+      "confidence": 0.9,
+      "amount": 38266.96,
+      "matched_by_rule": "tolerance_fee_tds_round",
+      "note": "Matched after allowing for: rounding_diff (+0.60)",
+      "symptoms": []
+    },
+    {
+      "order_id": "ORD1039",
+      "canonical_id": "ord1039",
+      "decision": "MATCH",
+      "match_type": "TOLERANCE",
+      "exception_reason": null,
+      "confidence": 0.9,
+      "amount": 595.91,
+      "matched_by_rule": "tolerance_fee_tds_round",
+      "note": "Matched after allowing for: tds_withheld (0.12)",
+      "symptoms": []
+    },
+    {
+      "order_id": "ORD1048",
+      "canonical_id": "ord1048",
+      "decision": "MATCH",
+      "match_type": "TOLERANCE",
+      "exception_reason": null,
+      "confidence": 0.9,
+      "amount": 4148.26,
+      "matched_by_rule": "tolerance_fee_tds_round",
+      "note": "Matched after allowing for: rounding_diff (+0.40)",
+      "symptoms": []
+    },
+    {
+      "order_id": "ORD1054",
+      "canonical_id": "ord1054",
+      "decision": "MATCH",
+      "match_type": "TOLERANCE",
+      "exception_reason": null,
+      "confidence": 0.9,
+      "amount": 39627.53,
+      "matched_by_rule": "tolerance_fee_tds_round",
+      "note": "Matched after allowing for: rounding_diff (-0.30)",
+      "symptoms": []
+    },
+    {
+      "order_id": "ORD1055",
+      "canonical_id": "ord1055",
+      "decision": "MATCH",
+      "match_type": "TOLERANCE",
+      "exception_reason": null,
+      "confidence": 0.9,
+      "amount": 37601.65,
+      "matched_by_rule": "tolerance_fee_tds_round",
+      "note": "Matched after allowing for: rounding_diff (+0.40)",
+      "symptoms": []
+    },
+    {
+      "order_id": "ORD1061",
+      "canonical_id": "ord1061",
+      "decision": "MATCH",
+      "match_type": "TOLERANCE",
+      "exception_reason": null,
+      "confidence": 0.9,
+      "amount": 40787.47,
+      "matched_by_rule": "tolerance_fee_tds_round",
+      "note": "Matched after allowing for: rounding_diff (+0.60)",
+      "symptoms": []
+    },
+    {
+      "order_id": "ORD1062",
+      "canonical_id": "ord1062",
+      "decision": "MATCH",
+      "match_type": "TOLERANCE",
+      "exception_reason": null,
+      "confidence": 0.9,
+      "amount": 12812.27,
+      "matched_by_rule": "tolerance_fee_tds_round",
+      "note": "Matched after allowing for: tds_withheld (2.56)",
+      "symptoms": []
+    },
+    {
+      "order_id": "ORD1033",
+      "canonical_id": "ord1033",
+      "decision": "MATCH",
+      "match_type": "MANY_TO_ONE",
+      "exception_reason": null,
+      "confidence": 0.9,
+      "amount": 1602.99,
+      "matched_by_rule": "batch_n_to_1",
+      "note": "Matched after allowing for: n_to_1 batch (3 settlements \u2192 1 credit)",
+      "symptoms": []
+    },
+    {
+      "order_id": "ORD1060",
+      "canonical_id": "ord1060",
+      "decision": "MATCH",
+      "match_type": "MANY_TO_ONE",
+      "exception_reason": null,
+      "confidence": 0.9,
+      "amount": 30310.87,
+      "matched_by_rule": "batch_n_to_1",
+      "note": "Matched after allowing for: n_to_1 batch (3 settlements \u2192 1 credit)",
+      "symptoms": []
+    },
+    {
+      "order_id": "ORD1024",
+      "canonical_id": "ord1024",
+      "decision": "MATCH",
+      "match_type": "MANY_TO_ONE",
+      "exception_reason": null,
+      "confidence": 0.9,
+      "amount": 35538.17,
+      "matched_by_rule": "batch_n_to_1",
+      "note": "Matched after allowing for: n_to_1 batch (3 settlements \u2192 1 credit)",
+      "symptoms": []
+    },
+    {
+      "order_id": "ORD1004",
+      "canonical_id": "ord1004",
+      "decision": "EXCEPTION",
+      "match_type": "EXCEPTION",
+      "exception_reason": "duplicate_bank_credit",
+      "confidence": 1.0,
+      "amount": 44881.0,
+      "matched_by_rule": null,
+      "note": "The bank statement contains two identical credit entries of 43983.38 on 2026-07-10 for order ORD1004, causing a cardinality break.",
+      "symptoms": [
+        "cardinality_break"
+      ]
+    },
+    {
+      "order_id": "ORD1005",
+      "canonical_id": "ord1005",
+      "decision": "EXCEPTION",
+      "match_type": "EXCEPTION",
+      "exception_reason": "duplicate_entry",
+      "confidence": 0.98,
+      "amount": 34132.31,
+      "matched_by_rule": null,
+      "note": "The order ORD1005 appears twice in the ledger with an amount of 34132.31, while there is only a single matching settlement and bank entry of 33449.66.",
+      "symptoms": [
+        "ledger_dupe"
+      ]
+    },
+    {
+      "order_id": "ORD1006",
+      "canonical_id": "ord1006",
+      "decision": "EXCEPTION",
+      "match_type": "EXCEPTION",
+      "exception_reason": "missing_bank_credit",
+      "confidence": 1.0,
+      "amount": 7619.2,
+      "matched_by_rule": null,
+      "note": "The settlement record with a net amount of INR 7466.82 exists, but the corresponding bank credit is completely missing 14 days past the 7-day SLA window.",
+      "symptoms": [
+        "one_sided_no_bank_past_sla",
+        "wrong_transaction_candidate"
+      ]
+    },
+    {
+      "order_id": "ORD1018",
+      "canonical_id": "ord1018",
+      "decision": "EXCEPTION",
+      "match_type": "EXCEPTION",
+      "exception_reason": "missing_bank_credit",
+      "confidence": 0.95,
+      "amount": 29858.91,
+      "matched_by_rule": null,
+      "note": "The settlement entry for ORD1018 exists with a net amount of 29261.73 INR on 2026-08-01, but the corresponding bank credit is completely missing and is 4 days past the 7-day SLA window.",
+      "symptoms": [
+        "one_sided_no_bank_past_sla",
+        "wrong_transaction_candidate"
+      ]
+    },
+    {
+      "order_id": "ORD1020",
+      "canonical_id": "ord1020",
+      "decision": "EXCEPTION",
+      "match_type": "EXCEPTION",
+      "exception_reason": "missing_bank_credit",
+      "confidence": 0.95,
+      "amount": 14371.37,
+      "matched_by_rule": null,
+      "note": "The settlement for ORD1020 exists with a net amount of 14,083.94 INR, but the corresponding bank credit remains missing 4 days past the 7-day SLA window.",
+      "symptoms": [
+        "one_sided_no_bank_past_sla",
+        "wrong_transaction_candidate"
+      ]
+    },
+    {
+      "order_id": "ORD1021",
+      "canonical_id": "ord1021",
+      "decision": "EXCEPTION",
+      "match_type": "EXCEPTION",
+      "exception_reason": "duplicate_entry",
+      "confidence": 1.0,
+      "amount": 5884.69,
+      "matched_by_rule": null,
+      "note": "The order ORD1021 appears twice in the internal ledger for 5884.69 INR, while there is only a single matching settlement and bank credit of 5767.00 INR.",
+      "symptoms": [
+        "ledger_dupe"
+      ]
+    },
+    {
+      "order_id": "ORD1028",
+      "canonical_id": "ord1028",
+      "decision": "EXCEPTION",
+      "match_type": "EXCEPTION",
+      "exception_reason": "wrong_transaction",
+      "confidence": 0.78,
+      "amount": 21547.3,
+      "matched_by_rule": null,
+      "note": "ORD1028 has no safe direct link, but a different transaction is the unique amount/date or near-ID candidate (['ORD1008', 'ORD1021', 'ORD1022', 'ORD1023', 'ORD1025']) \u2014 do not auto-link it.",
+      "symptoms": [
+        "one_sided_no_bank_past_sla",
+        "wrong_transaction_candidate"
+      ]
+    },
+    {
+      "order_id": "ORD1030",
+      "canonical_id": "ord1030",
+      "decision": "EXCEPTION",
+      "match_type": "EXCEPTION",
+      "exception_reason": "wrong_transaction",
+      "confidence": 0.78,
+      "amount": 38940.74,
+      "matched_by_rule": null,
+      "note": "ORD1030 has no safe direct link, but a different transaction is the unique amount/date or near-ID candidate (['ORD1000', 'ORD1010', 'ORD1031', 'ORD1031', 'ORD1032']) \u2014 do not auto-link it.",
+      "symptoms": [
+        "one_sided_no_bank_past_sla",
+        "wrong_transaction_candidate"
+      ]
+    },
+    {
+      "order_id": "ORD1031",
+      "canonical_id": "ord1031",
+      "decision": "EXCEPTION",
+      "match_type": "EXCEPTION",
+      "exception_reason": "duplicate_bank_credit",
+      "confidence": 0.95,
+      "amount": 32905.5,
+      "matched_by_rule": null,
+      "note": "ORD1031 has duplicate credit rows (2x) in the bank statement with identical amounts of \u20b932247.39 \u2014 looks like duplicate credit payouts.",
+      "symptoms": [
+        "cardinality_break"
+      ]
+    },
+    {
+      "order_id": "ORD1036",
+      "canonical_id": "ord1036",
+      "decision": "EXCEPTION",
+      "match_type": "EXCEPTION",
+      "exception_reason": "missing_bank_credit",
+      "confidence": 0.95,
+      "amount": 29520.45,
+      "matched_by_rule": null,
+      "note": "The ledger and settlement records for ORD1036 (gross amount 29520.45 INR) exist, but the corresponding bank credit is missing past the SLA window.",
+      "symptoms": [
+        "one_sided_no_bank_past_sla",
+        "wrong_transaction_candidate"
+      ]
+    },
+    {
+      "order_id": "ORD1038",
+      "canonical_id": "ord1038",
+      "decision": "EXCEPTION",
+      "match_type": "EXCEPTION",
+      "exception_reason": "missing_bank_credit",
+      "confidence": 0.95,
+      "amount": 10011.75,
+      "matched_by_rule": null,
+      "note": "The settlement entry for net amount 9811.51 is present, but the corresponding bank credit is completely missing 10 days past the 7-day SLA.",
+      "symptoms": [
+        "one_sided_no_bank_past_sla",
+        "wrong_transaction_candidate"
+      ]
+    },
+    {
+      "order_id": "ORD1040",
+      "canonical_id": "ord1040",
+      "decision": "EXCEPTION",
+      "match_type": "EXCEPTION",
+      "exception_reason": "duplicate_bank_credit",
+      "confidence": 1.0,
+      "amount": 35438.26,
+      "matched_by_rule": null,
+      "note": "The bank statement contains two identical credit entries of 34729.49 INR on 2026-07-28 for order ORD1040, while there is only one corresponding ledger and settlement entry.",
+      "symptoms": [
+        "cardinality_break"
+      ]
+    },
+    {
+      "order_id": "ORD1053",
+      "canonical_id": "ord1053",
+      "decision": "EXCEPTION",
+      "match_type": "EXCEPTION",
+      "exception_reason": "amount_mismatch",
+      "confidence": 0.9,
+      "amount": 9985.37,
+      "matched_by_rule": null,
+      "note": "The bank credit amount of 4175.50 does not match the expected net settlement amount of 9785.66 or the ledger amount of 9985.37, resulting in a shortfall of 5610.16.",
+      "symptoms": [
+        "under_amount",
+        "wrong_transaction_candidate"
+      ]
+    },
+    {
+      "order_id": "ORD1057",
+      "canonical_id": "ord1057",
+      "decision": "EXCEPTION",
+      "match_type": "EXCEPTION",
+      "exception_reason": "duplicate_bank_credit",
+      "confidence": 1.0,
+      "amount": 40092.22,
+      "matched_by_rule": null,
+      "note": "The bank statement contains two identical credit entries of 39,290.38 INR for order ORD1057 on 2026-07-06, while the ledger and settlement only record one corresponding entry.",
+      "symptoms": [
+        "cardinality_break"
+      ]
+    },
+    {
+      "order_id": "ORD1063",
+      "canonical_id": "ord1063",
+      "decision": "EXCEPTION",
+      "match_type": "EXCEPTION",
+      "exception_reason": "duplicate_entry",
+      "confidence": 1.0,
+      "amount": 6321.47,
+      "matched_by_rule": null,
+      "note": "The order ORD1063 appears twice in the internal ledger with an amount of 6321.47, triggering the ledger_dupe symptom while only one settlement and bank entry exist.",
+      "symptoms": [
+        "ledger_dupe"
+      ]
+    },
+    {
+      "order_id": "ORD1064",
+      "canonical_id": "ord1064",
+      "decision": "EXCEPTION",
+      "match_type": "EXCEPTION",
+      "exception_reason": "wrong_transaction",
+      "confidence": 0.78,
+      "amount": 20161.68,
+      "matched_by_rule": null,
+      "note": "ORD1064 has no safe direct link, but a different transaction is the unique amount/date or near-ID candidate (['ORD1004', 'ORD1004', 'ORD1014', 'ORD1034', 'ORD1044']) \u2014 do not auto-link it.",
+      "symptoms": [
+        "one_sided_no_bank_past_sla",
+        "wrong_transaction_candidate"
+      ]
+    },
+    {
+      "order_id": "ORD1065",
+      "canonical_id": "ord1065",
+      "decision": "EXCEPTION",
+      "match_type": "EXCEPTION",
+      "exception_reason": "missing_settlement",
+      "confidence": 0.85,
+      "amount": 42554.77,
+      "matched_by_rule": null,
+      "note": "ORD1065 exists in the ledger but never appears in settlement or the bank statement \u2014 the payment likely never actually settled.",
+      "symptoms": [
+        "one_sided_no_settlement"
+      ]
+    }
+  ]
+}
