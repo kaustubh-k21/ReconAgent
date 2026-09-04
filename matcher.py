@@ -5,9 +5,12 @@ import json
 import os
 from collections import defaultdict
 from datetime import date, datetime
+from decimal import Decimal, InvalidOperation, ROUND_HALF_EVEN
 from itertools import combinations
 
 DEFAULT_POLICY_PATH = os.path.join(os.path.dirname(__file__), "matching_policy.json")
+
+MONEY_QUANTUM = Decimal("0.01")
 
 _DEFAULT_POLICY = {
     "sla_days": 7,
@@ -17,6 +20,11 @@ _DEFAULT_POLICY = {
     "fee_rate_candidates": [0.012, 0.015, 0.02, 0.025, 0.03],
     "rounding_tolerance_rupees": 1.0,
     "date_lag_tolerance_days": 7,
+    "lookalike": {
+        "amount_epsilon_rupees": 0.02,
+        "date_window_days": 7,
+        "require_nonblank_bank_ref_for_amount_match": True,
+    },
     "confidence": {"auto": 0.9, "review": 0.6},
     "severity": {
         "critical_amount": 10000,
@@ -54,11 +62,48 @@ def load_csv(path):
         return list(csv.DictReader(f))
 
 
-def to_float(x, default=None):
-    try:
-        return float(x)
-    except (TypeError, ValueError):
+def to_money(x, default=None):
+    """Parse a money field as Decimal quantized to paise."""
+    if x is None or x == "":
         return default
+    if isinstance(x, Decimal):
+        return x.quantize(MONEY_QUANTUM, rounding=ROUND_HALF_EVEN)
+    try:
+        return Decimal(str(x).strip()).quantize(MONEY_QUANTUM, rounding=ROUND_HALF_EVEN)
+    except (InvalidOperation, ValueError, TypeError, ArithmeticError):
+        return default
+
+
+def to_float(x, default=None):
+    """Money-safe float via Decimal (JSON / call-site compatibility)."""
+    m = to_money(x, None)
+    if m is None:
+        return default
+    return float(m)
+
+
+def money_round(value) -> float:
+    """Quantize an accumulated amount to paise and return float."""
+    if value is None:
+        return 0.0
+    if not isinstance(value, Decimal):
+        value = to_money(value, Decimal("0"))
+    return float(value.quantize(MONEY_QUANTUM, rounding=ROUND_HALF_EVEN))
+
+
+def lookalike_settings(policy):
+    cfg = (policy or {}).get("lookalike") or {}
+    defaults = _DEFAULT_POLICY["lookalike"]
+    eps = to_money(
+        cfg.get("amount_epsilon_rupees", defaults["amount_epsilon_rupees"]),
+        Decimal("0.02"),
+    )
+    window = int(cfg.get("date_window_days", defaults["date_window_days"]))
+    require_ref = bool(cfg.get(
+        "require_nonblank_bank_ref_for_amount_match",
+        defaults["require_nonblank_bank_ref_for_amount_match"],
+    ))
+    return eps, window, require_ref
 
 
 def parse_date(s):
@@ -68,13 +113,6 @@ def parse_date(s):
         return datetime.strptime(s, "%Y-%m-%d").date()
     except (TypeError, ValueError):
         return None
-
-
-def rule_by_type(policy, rule_type):
-    for r in sorted(policy.get("rules", []), key=lambda x: x.get("priority", 99)):
-        if r.get("type") == rule_type:
-            return r
-    return None
 
 
 def rule_settings(policy, rule_id, default_confidence=0.5, default_auto=False):
@@ -114,6 +152,49 @@ def _one_edit_apart(a, b):
                 return False
     differences += (len(b) - j) + (len(a) - i)
     return differences <= 1
+
+
+_CHARGEBACK_TOKENS = (
+    "chargeback", "charge back", "charge-back", "cbk", "dispute",
+    "retrieval request", "representment",
+)
+_REVERSAL_TOKENS = (
+    "reversal", "reversed", "void", "cancel", "cancelled", "canceled",
+    "auth reverse", "settlement reverse",
+)
+
+
+def _bank_blob(bank_rows) -> str:
+    parts = []
+    for b in bank_rows or []:
+        for key in ("narration", "reference", "utr"):
+            parts.append(str(b.get(key) or ""))
+    return " ".join(parts).casefold()
+
+
+def _settlement_blob(settlement_row) -> str:
+    parts = []
+    for key in ("narration", "status", "settlement_batch_id", "order_id"):
+        parts.append(str((settlement_row or {}).get(key) or ""))
+    return " ".join(parts).casefold()
+
+
+def looks_like_chargeback(bank_rows, settlement_row=None) -> bool:
+    blob = _bank_blob(bank_rows) + " " + _settlement_blob(settlement_row)
+    return any(tok in blob for tok in _CHARGEBACK_TOKENS)
+
+
+def looks_like_reversal(bank_rows, settlement_row=None) -> bool:
+    blob = _bank_blob(bank_rows) + " " + _settlement_blob(settlement_row)
+    if any(tok in blob for tok in _REVERSAL_TOKENS):
+        return True
+    gross = to_money((settlement_row or {}).get("gross_amount"))
+    net = to_money((settlement_row or {}).get("net_amount"))
+    if gross is not None and gross < 0:
+        return True
+    if net is not None and net < 0:
+        return True
+    return False
 
 
 def has_id_format_variance(record):
@@ -173,22 +254,27 @@ def check_leg_a(ledger_row, settlement_rows, policy):
                 "note": f"{len(settlement_rows)} economically identical settlement rows",
             }
 
-        gross_total = round(sum(to_float(r.get("gross_amount"), 0.0)
-                                for r in settlement_rows), 2)
-        net_total = round(sum(to_float(r.get("net_amount"), 0.0)
-                              for r in settlement_rows), 2)
+        gross_total = money_round(sum(
+            (to_money(r.get("gross_amount"), Decimal("0")) for r in settlement_rows),
+            Decimal("0"),
+        ))
+        net_total = money_round(sum(
+            (to_money(r.get("net_amount"), Decimal("0")) for r in settlement_rows),
+            Decimal("0"),
+        ))
         math_ok = all(
             abs(
-                to_float(r.get("net_amount"), 0.0)
-                - (
-                    to_float(r.get("gross_amount"), 0.0)
-                    - to_float(r.get("fee"), 0.0)
-                    - to_float(r.get("tds"), 0.0)
-                )
-            ) < 0.02
+                (to_money(r.get("net_amount"), Decimal("0"))
+                 - (
+                     to_money(r.get("gross_amount"), Decimal("0"))
+                     - to_money(r.get("fee"), Decimal("0"))
+                     - to_money(r.get("tds"), Decimal("0"))
+                 ))
+            ) <= Decimal("0.02")
             for r in settlement_rows
         )
-        if amount is not None and abs(gross_total - amount) < 0.02 and math_ok:
+        amt = to_money(amount)
+        if amt is not None and abs(to_money(gross_total) - amt) <= Decimal("0.02") and math_ok:
             return {
                 "leg": "A", "status": "posted", "rule_id": "one_to_many",
                 "confidence": 0.9, "auto_confirm": True,
@@ -292,7 +378,10 @@ def check_leg_b_one_to_one(settlement_row, bank_rows, policy, as_of, closed_batc
                     "subtype": "duplicate_bank_credit",
                     "note": f"{len(positive_credits)} identical bank credits"}
 
-        total_credit = round(sum(positive_credits) - total_debits, 2)
+        total_credit = money_round(
+            sum((to_money(c, Decimal("0")) for c in positive_credits), Decimal("0"))
+            - to_money(total_debits, Decimal("0"))
+        )
         if refund > 0.01 or total_debits > 0.01:
             if abs(total_credit) <= rounding:
                 return {
@@ -315,7 +404,7 @@ def check_leg_b_one_to_one(settlement_row, bank_rows, policy, as_of, closed_batc
     if net is None or credit is None:
         return {"leg": "B", "status": "data_mismatch", "note": "unparseable bank/net"}
 
-    delta = round(credit - net, 2)
+    delta = money_round(to_money(credit) - to_money(net))
     lag_days = (bank_date - settle_date).days if (bank_date and settle_date) else 0
 
     if abs(delta) < 0.01:
@@ -358,6 +447,19 @@ def check_leg_b_one_to_one(settlement_row, bank_rows, policy, as_of, closed_batc
                 "note": f"gateway reports refund {refund:.2f}; bank shortfall {abs(delta):.2f}",
                 "refund_amount": refund,
             }
+        # No gateway refund memo — classify reverse flows before generic shortfall.
+        if looks_like_chargeback(bank_rows, settlement_row):
+            return {
+                "leg": "B", "status": "chargeback",
+                "note": f"chargeback/dispute markers with bank shortfall {abs(delta):.2f}",
+                "delta": delta,
+            }
+        if looks_like_reversal(bank_rows, settlement_row):
+            return {
+                "leg": "B", "status": "reversal",
+                "note": f"reversal markers with bank shortfall {abs(delta):.2f}",
+                "delta": delta,
+            }
         return {"leg": "B", "status": "under_amount",
                 "note": f"shortfall {abs(delta):.2f}", "delta": delta}
 
@@ -367,14 +469,20 @@ def check_leg_b_one_to_one(settlement_row, bank_rows, policy, as_of, closed_batc
 
 def check_leg_b_one_to_many(settlement_rows, bank_rows, policy):
     """Reconcile split settlements against one or more bank postings."""
-    expected = round(sum(to_float(r.get("net_amount"), 0.0)
-                         for r in settlement_rows), 2)
-    positive = sum(max(to_float(r.get("credit_amount"), 0.0), 0.0)
-                   for r in bank_rows)
-    debits = sum(max(to_float(r.get("debit_amount"), 0.0), 0.0)
-                 for r in bank_rows)
-    actual = round(positive - debits, 2)
-    if bank_rows and abs(actual - expected) < 0.02:
+    expected = money_round(sum(
+        (to_money(r.get("net_amount"), Decimal("0")) for r in settlement_rows),
+        Decimal("0"),
+    ))
+    positive = sum(
+        (max(to_money(r.get("credit_amount"), Decimal("0")), Decimal("0")) for r in bank_rows),
+        Decimal("0"),
+    )
+    debits = sum(
+        (max(to_money(r.get("debit_amount"), Decimal("0")), Decimal("0")) for r in bank_rows),
+        Decimal("0"),
+    )
+    actual = money_round(positive - debits)
+    if bank_rows and abs(to_money(actual) - to_money(expected)) <= Decimal("0.02"):
         return {
             "leg": "B", "status": "posted", "rule_id": "one_to_many",
             "confidence": 0.9, "auto_confirm": True,
@@ -383,7 +491,7 @@ def check_leg_b_one_to_many(settlement_rows, bank_rows, policy):
                 f"{len(bank_rows)} bank postings)"
             ],
         }
-    delta = round(actual - expected, 2)
+    delta = money_round(actual - expected)
     return {
         "leg": "B",
         "status": "under_amount" if delta < 0 else "over_amount",
@@ -411,12 +519,15 @@ def check_leg_b_batch(settlement_row, settlements_by_batch, bank_by_ref, policy)
         return {"leg": "B", "status": "cardinality_break",
                 "note": f"batch {bid} has {len(bank_rows)} bank rows", "batch_id": bid}
 
-    total_net = round(sum(to_float(m.get("net_amount"), 0.0) for m in members), 2)
-    credit = to_float(bank_rows[0].get("credit_amount"))
+    total_net = money_round(sum(
+        (to_money(m.get("net_amount"), Decimal("0")) for m in members),
+        Decimal("0"),
+    ))
+    credit = to_money(bank_rows[0].get("credit_amount"))
     if credit is None:
         return {"leg": "B", "status": "data_mismatch", "batch_id": bid}
 
-    if abs(credit - total_net) < 0.01:
+    if abs(credit - to_money(total_net)) < Decimal("0.01"):
         return {
             "leg": "B", "status": "posted", "rule_id": "batch_n_to_1",
             "confidence": 0.9, "auto_confirm": True,
@@ -425,7 +536,7 @@ def check_leg_b_batch(settlement_row, settlements_by_batch, bank_by_ref, policy)
             "bank": bank_rows,
         }
 
-    delta = round(credit - total_net, 2)
+    delta = money_round(credit - to_money(total_net))
     if delta < 0:
         return {"leg": "B", "status": "under_amount", "batch_id": bid,
                 "note": f"batch shortfall {abs(delta):.2f}", "delta": delta}
@@ -446,8 +557,11 @@ def _subset_sum_unique(pool, target, bank_date, max_size=6, max_date_gap=90):
     n = min(max_size, len(pool))
     for k in range(2, n + 1):
         for combo in combinations(pool, k):
-            total = round(sum(to_float(row.get("net_amount"), 0.0) for row in combo), 2)
-            if abs(total - target) > 0.02:
+            total = money_round(sum(
+                (to_money(row.get("net_amount"), Decimal("0")) for row in combo),
+                Decimal("0"),
+            ))
+            if abs(to_money(total) - to_money(target, Decimal("0"))) > Decimal("0.02"):
                 continue
             if bank_date:
                 too_far = False
@@ -512,25 +626,31 @@ def discover_n_to_1(settlement_by_id, bank_by_ref, ledger_ids, policy=None):
     return discovered
 
 
-def candidate_symptoms(record, leg_a, leg_b, all_settlements, all_bank):
+def candidate_symptoms(record, leg_a, leg_b, all_settlements, all_bank, policy=None):
     """Flag lookalike counterparts. Never auto-links them."""
     symptoms = []
     oid = record["order_id"]
     ledger = record["ledger"]
-    amount = to_float(ledger.get("amount"))
+    amount = to_money(ledger.get("amount"))
     order_date = parse_date(ledger.get("order_date"))
+    eps, window, require_ref = lookalike_settings(policy)
 
     if leg_a and leg_a.get("status") == "missing_settlement" and amount is not None:
         candidates = []
         for row in all_settlements:
             other_id = row.get("order_id") or ""
-            gross = to_float(row.get("gross_amount"))
+            gross = to_money(row.get("gross_amount"))
             settle_date = parse_date(row.get("settlement_date"))
             close_date = (
                 order_date is None or settle_date is None
-                or abs((settle_date - order_date).days) <= 7
+                or abs((settle_date - order_date).days) <= window
             )
-            if other_id != oid and gross is not None and abs(gross - amount) < 0.02 and close_date:
+            if (
+                other_id != oid
+                and gross is not None
+                and abs(gross - amount) <= eps
+                and close_date
+            ):
                 candidates.append(row)
         if len(candidates) == 1:
             symptoms.append("wrong_transaction_candidate")
@@ -540,28 +660,38 @@ def candidate_symptoms(record, leg_a, leg_b, all_settlements, all_bank):
             record["candidate_settlement_ids"] = [c.get("order_id") for c in candidates[:5]]
 
     if leg_b and leg_b.get("status") in (
-        "pending", "aged_missing", "under_amount", "over_amount"
+        "pending", "aged_missing", "under_amount", "over_amount",
+        "chargeback", "reversal", "refund_partial", "refund_full",
     ):
         settlement_rows = record.get("settlement") or []
         expected = None
         settle_date = None
         if settlement_rows:
-            expected = round(sum(to_float(r.get("net_amount"), 0.0)
-                                 for r in settlement_rows), 2)
+            expected = sum(
+                (to_money(r.get("net_amount"), Decimal("0")) for r in settlement_rows),
+                Decimal("0"),
+            )
             settle_date = parse_date(settlement_rows[0].get("settlement_date"))
         candidates = []
         similar_ref = []
         for row in all_bank:
             ref = row.get("reference") or ""
-            credit = to_float(row.get("credit_amount"), 0.0)
-            debit = to_float(row.get("debit_amount"), 0.0)
+            credit = to_money(row.get("credit_amount"), Decimal("0"))
+            debit = to_money(row.get("debit_amount"), Decimal("0"))
             value = credit - debit
             bank_date = parse_date(row.get("credit_date"))
             close_date = (
                 settle_date is None or bank_date is None
-                or abs((bank_date - settle_date).days) <= 7
+                or abs((bank_date - settle_date).days) <= window
             )
-            if ref != oid and expected is not None and abs(value - expected) < 0.02 and close_date:
+            if (
+                ref != oid
+                and expected is not None
+                and abs(value - expected) <= eps
+                and close_date
+            ):
+                if require_ref and not ref:
+                    continue
                 candidates.append(row)
             if ref and ref != oid and _one_edit_apart(ref, oid):
                 similar_ref.append(row)
@@ -611,6 +741,10 @@ def collect_symptoms(record, leg_a, leg_b):
             symptoms.append("refund_full")
         elif st == "refund_partial":
             symptoms.append("refund_partial")
+        elif st == "chargeback":
+            symptoms.append("chargeback")
+        elif st == "reversal":
+            symptoms.append("reversal")
         elif st == "unexplained_variance":
             symptoms.append("unexplained_variance")
 
@@ -762,7 +896,7 @@ def run_matching(data_dir="data", policy_path=None, as_of=None):
                     record["bank"] = leg_b["bank"]
             symptoms = collect_symptoms(record, leg_a, leg_b)
             symptoms.extend(candidate_symptoms(
-                record, leg_a, leg_b, all_settlements, all_bank
+                record, leg_a, leg_b, all_settlements, all_bank, policy=policy
             ))
             amount = to_float(row.get("amount"), 0.0)
             age = 0
@@ -866,25 +1000,8 @@ def run_matching(data_dir="data", policy_path=None, as_of=None):
             continue
 
         if st == "pending":
-            extra = candidate_symptoms(record, leg_a, leg_b, all_settlements, all_bank)
-            if extra:
-                symptoms = collect_symptoms(record, leg_a, leg_b)
-                symptoms.extend(extra)
-                amount = to_float(row.get("amount"), 0.0)
-                age = 0
-                od = parse_date(row.get("order_date"))
-                if od and as_of:
-                    age = (as_of - od).days
-                results["leg_summary"]["B_failed"] += 1
-                results["exceptions"].append({
-                    **record,
-                    "leg_a": leg_a,
-                    "leg_b": leg_b,
-                    "symptoms": symptoms,
-                    "severity": severity_for(amount, age, policy),
-                    "age_days": age,
-                })
-                continue
+            # Lookalike bank rows are hints only — do not demote within-SLA pending
+            # into an exception. Pending means the credit is still expected.
             results["leg_summary"]["B_pending"] += 1
             results["pending"].append({
                 **base, "tier": "pending", "auto_confirmed": False,
@@ -907,7 +1024,7 @@ def run_matching(data_dir="data", policy_path=None, as_of=None):
         results["leg_summary"]["B_failed"] += 1
         symptoms = collect_symptoms(record, leg_a, leg_b)
         symptoms.extend(candidate_symptoms(
-            record, leg_a, leg_b, all_settlements, all_bank
+            record, leg_a, leg_b, all_settlements, all_bank, policy=policy
         ))
         amount = to_float(row.get("amount"), 0.0)
         age = leg_b.get("age_days")

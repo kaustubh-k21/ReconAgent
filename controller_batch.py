@@ -536,7 +536,7 @@ def reconcile_batch(batch_id: str) -> dict:
     with open(engine_dir / "internal_ledger.csv", newline="", encoding="utf-8") as f:
         ids = [row["order_id"] for row in csv.DictReader(f)]
     dupe_counts = dict(Counter(ids))
-    classified = ec.classify_exceptions(results["exceptions"], dupe_counts, use_llm=False)
+    classified = ec.classify_exceptions(results["exceptions"], dupe_counts)
     sev_rank = {"critical": 0, "high": 1, "medium": 2, "low": 3}
     classified = sorted(
         classified,
@@ -622,6 +622,144 @@ def get_results(batch_id: str) -> dict:
     if not path.exists():
         raise FileNotFoundError("results not ready")
     return json.loads(path.read_text(encoding="utf-8"))
+
+
+def _find_and_remove(results: dict, order_id: str) -> tuple[str | None, dict | None]:
+    for key in ("exceptions", "exact_matches", "fuzzy_matches", "review_matches", "pending"):
+        bucket = results.get(key) or []
+        for i, row in enumerate(bucket):
+            if row.get("order_id") == order_id:
+                return key, bucket.pop(i)
+    return None, None
+
+
+def apply_override(
+    batch_id: str,
+    order_id: str,
+    action: str,
+    note: str,
+    operator: str = "operator",
+) -> dict:
+    """Force match / force exception / force pending with a required audit note."""
+    action = (action or "").strip().lower()
+    note = (note or "").strip()
+    if action not in ("force_match", "force_exception", "force_pending"):
+        raise ValueError("action must be force_match, force_exception, or force_pending")
+    if len(note) < 3:
+        raise ValueError("audit note is required (at least 3 characters)")
+
+    path = batch_dir(batch_id) / "results.json"
+    if not path.exists():
+        raise FileNotFoundError("results not ready — run reconcile first")
+    results = json.loads(path.read_text(encoding="utf-8"))
+
+    source_bucket, row = _find_and_remove(results, order_id)
+    if row is None:
+        raise ValueError(f"order_id {order_id!r} not found in batch results")
+
+    prior_decision = {
+        "exceptions": "EXCEPTION",
+        "exact_matches": "MATCH",
+        "fuzzy_matches": "MATCH",
+        "review_matches": "MATCH",
+        "pending": "PENDING",
+    }.get(source_bucket, source_bucket)
+
+    amount = row.get("amount")
+    override_rec = {
+        "order_id": order_id,
+        "action": action,
+        "from_bucket": source_bucket,
+        "prior_decision": prior_decision,
+        "note": note,
+        "operator": operator or "operator",
+        "overridden_at": _now(),
+        "engine_cause": row.get("cause"),
+        "engine_rule": row.get("matched_by_rule"),
+    }
+
+    if action == "force_match":
+        new_row = {
+            "order_id": order_id,
+            "amount": amount,
+            "confidence": 1.0,
+            "note": f"Operator force-match: {note}",
+            "matched_by_rule": "operator_force_match",
+            "auto_confirmed": False,
+            "operator_override": True,
+        }
+        results.setdefault("exact_matches", []).insert(0, new_row)
+        new_decision = "MATCH"
+    elif action == "force_pending":
+        new_row = {
+            "order_id": order_id,
+            "amount": amount,
+            "confidence": 0.95,
+            "note": f"Operator marked pending: {note}",
+            "matched_by_rule": "operator_force_pending",
+            "auto_confirmed": False,
+            "operator_override": True,
+        }
+        results.setdefault("pending", []).insert(0, new_row)
+        new_decision = "PENDING"
+    else:
+        new_row = {
+            "order_id": order_id,
+            "amount": amount,
+            "cause": "operator_override",
+            "link_suspicion": None,
+            "confidence": 1.0,
+            "reasoning": f"Operator force-exception: {note}",
+            "actually_used": "operator",
+            "symptoms": ["operator_override"],
+            "severity": row.get("severity") or "high",
+            "display_cause": "Operator override",
+            "evidence_teaser": note,
+            "evidence_facts": [note],
+            "evidence_action": "Recorded by operator; leave unmatched until cleared.",
+            "operator_override": True,
+        }
+        # Re-present for consistent UI fields.
+        from exception_copy import present_exception
+        new_row = present_exception(new_row)
+        new_row["operator_override"] = True
+        results.setdefault("exceptions", []).insert(0, new_row)
+        new_decision = "EXCEPTION"
+
+    override_rec["new_decision"] = new_decision
+    results.setdefault("overrides", []).append(override_rec)
+
+    # Refresh summary counts
+    n_exact = len(results.get("exact_matches") or [])
+    n_fuzzy = len(results.get("fuzzy_matches") or [])
+    n_review = len(results.get("review_matches") or [])
+    n_pending = len(results.get("pending") or [])
+    n_exc = len(results.get("exceptions") or [])
+    total = n_exact + n_fuzzy + n_review + n_pending + n_exc
+    summary = results.setdefault("summary", {})
+    summary.update({
+        "total_transactions": total,
+        "exact_matches": n_exact,
+        "fuzzy_matches": n_fuzzy,
+        "review_matches": n_review,
+        "pending_bank": n_pending,
+        "exceptions": n_exc,
+        "override_count": len(results.get("overrides") or []),
+    })
+    ctrl = summary.setdefault("controller", {})
+    ctrl["exceptions"] = n_exc
+    ctrl["pending_bank"] = n_pending
+    ctrl["safely_reconciled"] = n_exact + n_fuzzy
+    ctrl["require_review"] = n_review + n_exc
+    ctrl["override_count"] = len(results.get("overrides") or [])
+
+    _write_json(path, results)
+
+    state = load_batch(batch_id)
+    state["results_summary"] = summary
+    state["status"] = "COMPLETED"
+    save_batch(state)
+    return results
 
 
 def list_batches(limit: int = 20) -> list[dict]:

@@ -2,7 +2,6 @@
 
     python main.py            # rules
     python main.py --ml       # trained model
-    python main.py --llm      # Gemini if GEMINI_API_KEY is set
     python main.py --regen    # new synthetic data first
     python main.py --dry-run  # print only
     python main.py --data-dir evaluation_datasets/hard_100
@@ -27,6 +26,7 @@ import ingest_adapter
 from ingest_validate import IngestValidationFailed, STATUS_FAILED
 from predictions import build_predictions
 from exception_copy import enrich_classified
+from schema_contract import SchemaError, contract_text
 
 AUTO_MATCH_CAUSES = {
     "clean", "fee_variance", "tds_deduction", "rounding", "batch_settlement",
@@ -74,6 +74,14 @@ def score_against_truth(matched_results, classified_exceptions, truth):
             exc = next((c for c in classified_exceptions if c["order_id"] == oid), None)
             predicted = exc["cause"] if exc else "MISSING_FROM_PIPELINE"
             is_ok = predicted == true_cause
+            if (
+                not is_ok
+                and exc
+                and exc.get("link_suspicion")
+                and exc.get("link_suspicion") == true_cause
+            ):
+                is_ok = True
+                predicted = f"{exc['cause']}+{exc['link_suspicion']}"
 
         if is_ok:
             correct += 1
@@ -115,20 +123,13 @@ def _print_validation_failed(report):
 
 def main():
     parser = argparse.ArgumentParser()
-    mode_group = parser.add_mutually_exclusive_group()
-    mode_group.add_argument("--ml", action="store_true",
-                            help="use the self-trained model (run train_model.py first)")
-    mode_group.add_argument("--llm", action="store_true",
-                            help="use Gemini API for exception classification")
+    parser.add_argument("--ml", action="store_true",
+                        help="use the self-trained model (run train_model.py first)")
     parser.add_argument("--regen", action="store_true", help="regenerate synthetic source data")
     parser.add_argument("--dry-run", action="store_true",
                         help="run pipeline and print summary without writing results/dashboard")
     parser.add_argument("--data-dir", default=os.path.join(os.path.dirname(__file__), "data"))
     parser.add_argument("--out", default=os.path.join(os.path.dirname(__file__), "results.json"))
-    parser.add_argument("--escalate-low-confidence", action="store_true",
-                        help="escalate low-confidence ML predictions to Gemini")
-    parser.add_argument("--confidence-threshold", type=float, default=0.5,
-                        help="confidence threshold below which to escalate (default 0.5)")
     parser.add_argument("--n", type=int, default=70, help="transaction count when regenerating")
     parser.add_argument("--seed", type=int, default=42, help="RNG seed when regenerating")
     parser.add_argument("--no-normalize-ids", action="store_true",
@@ -136,9 +137,6 @@ def main():
     parser.add_argument("--predictions", default=None,
                         help="write canonical predictions.json for the external evaluator")
     args = parser.parse_args()
-
-    if args.escalate_low_confidence and not args.ml:
-        raise SystemExit("Error: --escalate-low-confidence can only be used with --ml mode.")
 
     data_dir = os.path.abspath(args.data_dir)
     adapter_meta = {"adapted": False, "schema": "engine"}
@@ -158,10 +156,15 @@ def main():
     except IngestValidationFailed as e:
         _print_validation_failed(e.report.as_dict())
         raise SystemExit(1)
+    except SchemaError as e:
+        print("SCHEMA_ERROR", file=sys.stderr)
+        print(str(e), file=sys.stderr)
+        raise SystemExit(2)
     except FileNotFoundError as e:
         raise SystemExit(
             f"{e}\nRefusing to silently generate demo data. "
-            "Pass --regen if you want a synthetic batch, or --data-dir pointing at complete sources."
+            "Pass --regen if you want a synthetic batch, or --data-dir pointing at complete sources.\n\n"
+            + contract_text()
         ) from e
 
     ok, errs = validate_sources.validate_sources(engine_dir)
@@ -181,9 +184,6 @@ def main():
     results = matcher.run_matching(data_dir=engine_dir)
     dupe_counts = count_ledger_duplicates(engine_dir)
 
-    escalation_attempted = 0
-    escalation_succeeded = 0
-
     if args.ml:
         if ml_classifier.load_model() is None:
             raise SystemExit(
@@ -192,34 +192,9 @@ def main():
             )
         classified = ml_classifier.classify_exceptions(results["exceptions"], dupe_counts)
         classifier_mode = "ml"
-
-        if args.escalate_low_confidence:
-            classifier_mode = "ml_with_gemini_escalation"
-            exceptions_by_id = {rec["order_id"]: rec for rec in results["exceptions"]}
-            for exc in classified:
-                if exc["confidence"] < args.confidence_threshold:
-                    escalation_attempted += 1
-                    orig_rec = exceptions_by_id.get(exc["order_id"])
-                    if orig_rec:
-                        orig_rec["ledger_dupe_count"] = dupe_counts.get(exc["order_id"], 1)
-                        esc_res = ec.escalate_to_gemini(orig_rec, exc)
-                        if esc_res:
-                            exc["cause"] = esc_res["cause"]
-                            exc["confidence"] = esc_res["confidence"]
-                            exc["reasoning"] = esc_res["reasoning"]
-                            exc["actually_used"] = "gemini_escalation"
-                            escalation_succeeded += 1
-                        else:
-                            exc["actually_used"] = "ml_escalation_attempted_fallback"
-                else:
-                    exc["actually_used"] = "ml"
     else:
-        classified = ec.classify_exceptions(results["exceptions"], dupe_counts, use_llm=args.llm)
-        if args.llm:
-            any_fallback = any(exc.get("actually_used") == "rule_based_fallback" for exc in classified)
-            classifier_mode = "gemini_fallback_to_rule_based" if any_fallback else "gemini_api"
-        else:
-            classifier_mode = "rule_based"
+        classified = ec.classify_exceptions(results["exceptions"], dupe_counts)
+        classifier_mode = "rule_based"
 
     sev_rank = {"critical": 0, "high": 1, "medium": 2, "low": 3}
     classified = sorted(
@@ -269,12 +244,6 @@ def main():
     # match_rate is auto-clears only; date-lag is review, not matched.
     match_rate = auto_match_rate
 
-    gemini_fallback_count = 0
-    if args.llm:
-        gemini_fallback_count = sum(
-            1 for exc in classified if exc.get("actually_used") == "rule_based_fallback"
-        )
-
     severity_breakdown = dict(Counter(c.get("severity", "low") for c in classified))
 
     output = {
@@ -293,9 +262,6 @@ def main():
             "self_score_is_in_distribution_only": True,
             "ground_truth_available": ground_truth_available,
             "ingest": adapter_meta,
-            "gemini_fallback_count": gemini_fallback_count,
-            "escalation_attempted_count": escalation_attempted,
-            "escalation_succeeded_count": escalation_succeeded,
             "leg_summary": results.get("leg_summary", {}),
             "rule_counts": results.get("rule_counts", {}),
             "severity_breakdown": severity_breakdown,

@@ -11,6 +11,8 @@ CAUSE_LABEL = {
     "missing_settlement": "Missing settlement",
     "refund_partial": "Partial refund",
     "refund_full": "Full refund",
+    "chargeback": "Chargeback / dispute",
+    "reversal": "Settlement reversal",
     "duplicate_credit": "Duplicate bank credit",
     "duplicate_entry": "Duplicate ledger entry",
     "duplicate_gateway": "Duplicate settlement",
@@ -22,6 +24,7 @@ CAUSE_LABEL = {
     "tds_deduction": "TDS withheld",
     "rounding": "Rounding difference",
     "pending_bank": "Pending bank credit",
+    "operator_override": "Operator override",
 }
 
 DEFAULT_ACTION = "Review the source rows before clearing."
@@ -59,6 +62,7 @@ def _bank_rows(ex: dict) -> list[dict]:
 def present_exception(ex: dict) -> dict:
     row = dict(ex)
     cause = row.get("cause") or "unexplained"
+    link_suspicion = row.get("link_suspicion")
     symptoms = set(row.get("symptoms") or [])
     oid = str(row.get("order_id") or "")
     age = row.get("age_days")
@@ -119,7 +123,12 @@ def present_exception(ex: dict) -> dict:
         )
         action = "Confirm whether the payment actually captured at the gateway."
 
-    if "wrong_transaction_candidate" in symptoms or cause == "wrong_transaction":
+    suspicion = link_suspicion or (
+        "wrong_transaction" if "wrong_transaction_candidate" in symptoms or cause == "wrong_transaction"
+        else "ambiguous_match" if "ambiguous_match_candidate" in symptoms or cause == "ambiguous_match"
+        else None
+    )
+    if suspicion == "wrong_transaction":
         if bank_refs:
             shown = ", ".join(bank_refs[:3])
             facts.append(f"A similar credit appears under {shown} and was not auto-linked.")
@@ -132,7 +141,7 @@ def present_exception(ex: dict) -> dict:
             )
         action = "Verify the UTR and bank reference before clearing."
 
-    if "ambiguous_match_candidate" in symptoms or cause == "ambiguous_match":
+    if suspicion == "ambiguous_match":
         pool = bank_refs or settle_ids
         if pool:
             facts.append(
@@ -161,6 +170,23 @@ def present_exception(ex: dict) -> dict:
         if not facts:
             facts.append("Refund or reversing debit evidence nets the settled amount to zero.")
         action = "Confirm the reversal posted on both gateway and bank."
+
+    if cause == "chargeback" or "chargeback" in symptoms:
+        if debit:
+            facts.append(f"Bank debit of {debit} looks like a chargeback/dispute pullback.")
+        elif delta_disp:
+            facts.append(f"Shortfall of {delta_disp} with chargeback/dispute markers and no gateway refund memo.")
+        else:
+            facts.append("Chargeback or dispute markers on the bank side without a gateway refund memo.")
+        if net:
+            facts.append(f"Original settled net was {net}.")
+        action = "Open the dispute case with the acquirer; do not clear as a normal shortfall."
+
+    if cause == "reversal" or "reversal" in symptoms:
+        facts.append("Settlement or bank evidence indicates a void/reversal of the original capture.")
+        if net and credit:
+            facts.append(f"Settled net {net} versus bank credit {credit}.")
+        action = "Confirm the void with the gateway and whether a replacement capture exists."
 
     if cause == "duplicate_credit" or "duplicate_credit" in symptoms or (
         "cardinality_break" in symptoms and len(banks) > 1
@@ -212,20 +238,28 @@ def present_exception(ex: dict) -> dict:
         else:
             facts.append("The matcher could not tie this row out automatically.")
 
-    if cause == "wrong_transaction" and missing_bank:
+    if cause in ("aged_missing_bank",) and suspicion == "wrong_transaction":
         teaser = "Bank credit missing past SLA. Similar credit found elsewhere — not auto-linked."
-    elif cause == "wrong_transaction":
+    elif cause == "wrong_transaction" and missing_bank:
+        teaser = "Bank credit missing past SLA. Similar credit found elsewhere — not auto-linked."
+    elif cause == "wrong_transaction" or (
+        cause not in ("ambiguous_match",) and suspicion == "wrong_transaction" and not missing_bank
+    ):
         teaser = "Similar counterpart found on another reference — not auto-linked."
     elif cause == "aged_missing_bank" or missing_bank:
         teaser = "Bank credit still missing after the SLA window."
-    elif cause in ("refund_partial", "refund_full"):
+    elif cause in ("refund_partial", "refund_full", "chargeback", "reversal"):
         teaser = facts[0]
-    elif cause == "ambiguous_match":
+    elif cause == "ambiguous_match" or suspicion == "ambiguous_match":
         teaser = "More than one plausible counterpart — not auto-linked."
     else:
         teaser = facts[0]
 
     row["display_cause"] = CAUSE_LABEL.get(cause, cause.replace("_", " ").capitalize())
+    if link_suspicion:
+        row["display_link_suspicion"] = CAUSE_LABEL.get(
+            link_suspicion, link_suspicion.replace("_", " ").capitalize()
+        )
     row["evidence_teaser"] = teaser
     row["evidence_facts"] = facts
     row["evidence_action"] = action

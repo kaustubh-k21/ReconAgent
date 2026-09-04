@@ -46,7 +46,7 @@ def build_training_examples(n_transactions=4000, seed=7, tmp_dir="data_train"):
 
 def main():
     parser = argparse.ArgumentParser()
-    parser.add_argument("--n", type=int, default=4000, help="training batch size")
+    parser.add_argument("--n", type=int, default=1000, help="training batch size")
     parser.add_argument("--seed", type=int, default=7, help="training batch seed (kept separate from the demo seed 42)")
     parser.add_argument("--out", default=os.path.join(os.path.dirname(__file__), "exception_model.joblib"))
     args = parser.parse_args()

@@ -7,6 +7,7 @@ from __future__ import annotations
 
 import csv
 import os
+import shutil
 from typing import Optional
 
 from ingest_validate import (
@@ -22,9 +23,21 @@ from ingest_validate import (
     validate_engine_dir,
     validate_eval_rows,
 )
+from schema_contract import SchemaError, validate_source_layout
 
 ENGINE_FILES = ("internal_ledger.csv", "settlement_report.csv", "bank_statement.csv")
 EVAL_GATEWAY = "gateway_settlement.csv"
+RECON_META = "recon_meta.json"
+
+
+def _copy_recon_meta(src_dir: str, dest_dir: str) -> bool:
+    """Preserve as_of / SLA so pending-bank stays pending after ingest."""
+    src = os.path.join(src_dir, RECON_META)
+    if not os.path.exists(src):
+        return False
+    os.makedirs(dest_dir, exist_ok=True)
+    shutil.copy2(src, os.path.join(dest_dir, RECON_META))
+    return True
 
 
 def looks_like_engine_schema(data_dir: str) -> bool:
@@ -146,6 +159,7 @@ def adapt_eval_dir(src_dir: str, dest_dir: str, normalize_ids: bool = True) -> d
     _write(os.path.join(dest_dir, "bank_statement.csv"), bank_out,
            ["reference", "source_reference", "credit_date", "credit_amount", "debit_amount",
             "utr", "narration"])
+    copied_meta = _copy_recon_meta(src_dir, dest_dir)
 
     return {
         "source_dir": os.path.abspath(src_dir),
@@ -153,6 +167,7 @@ def adapt_eval_dir(src_dir: str, dest_dir: str, normalize_ids: bool = True) -> d
         "normalize_ids": bool(normalize_ids),
         "copied_ground_truth": False,
         "invented_batch_ids": False,
+        "copied_recon_meta": copied_meta,
         "ledger_rows": len(ledger_out),
         "settlement_rows": len(gw_out),
         "bank_rows": len(bank_out),
@@ -214,12 +229,15 @@ def canonicalize_engine_dir(src_dir: str, dest_dir: str) -> dict:
         _write(os.path.join(dest_dir, filename), rewritten, fieldnames)
         counts[filename] = len(rewritten)
 
+    copied_meta = _copy_recon_meta(src_dir, dest_dir)
+
     return {
         "source_dir": os.path.abspath(src_dir),
         "dest_dir": os.path.abspath(dest_dir),
         "adapted": False,
         "schema": "engine",
         "normalize_ids": False,
+        "copied_recon_meta": copied_meta,
         "money_validation": "OK",
         "ledger_rows": counts.get("internal_ledger.csv", 0),
         "settlement_rows": counts.get("settlement_report.csv", 0),
@@ -235,6 +253,7 @@ def canonicalize_engine_dir(src_dir: str, dest_dir: str) -> dict:
 def resolve_engine_dir(data_dir: str, work_dir: Optional[str] = None,
                        normalize_ids: bool = True) -> tuple[str, dict]:
     data_dir = os.path.abspath(data_dir)
+    validate_source_layout(data_dir)
     if looks_like_engine_schema(data_dir):
         dest = work_dir or os.path.join(data_dir, ".engine_ingest")
         meta = canonicalize_engine_dir(data_dir, dest)
@@ -245,11 +264,8 @@ def resolve_engine_dir(data_dir: str, work_dir: Optional[str] = None,
         meta["adapted"] = True
         meta["schema"] = "eval"
         return os.path.abspath(dest), meta
-    missing_engine = [f for f in ENGINE_FILES
-                      if not os.path.exists(os.path.join(data_dir, f))]
-    raise FileNotFoundError(
-        "No usable source files in {0}. Missing engine files: {1}. "
-        "Expected either settlement_report.csv (engine schema) or "
-        "gateway_settlement.csv (eval schema). Pass --regen only to build "
-        "synthetic demo data.".format(data_dir, missing_engine)
-    )
+    # validate_source_layout should have raised; keep a fallback.
+    raise SchemaError([
+        f"No usable source files in {data_dir}.",
+        "Expected settlement_report.csv (engine) or gateway_settlement.csv (eval).",
+    ])

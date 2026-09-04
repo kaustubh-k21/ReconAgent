@@ -1,212 +1,41 @@
 # ReconAgent
 
-ReconAgent is a small finance reconciliation system that compares transactions across an internal ledger, a payment gateway and a bank statement.
+ReconAgent lines up three files that rarely agree on their own:
 
-The main idea is simple: **match what should have happened with what actually happened, and flag anything that doesn't make sense.**
+1. **Internal ledger** — what the business booked  
+2. **Settlement / payment report** — what the gateway settled after fees, TDS, refunds  
+3. **Bank statement** — what actually hit the account  
 
-## How it works
+It clears rows when the proof is strong enough. Everything else stays open with a reason a person can read. Wrong clears are worse than open exceptions, so it leans that way on purpose.
 
-```text
-Ledger
-Gateway
-Bank
-  ↓
-Upload & Validate
-  ↓
-Normalize the data
-  ↓
-Reconcile transactions
-  ↓
-Classify exceptions
-  ↓
-Review results
-```
+There is **no LLM** in the path. Default explanation is rule-based. Optional ML (`--ml`) is only for the leftover exception list if you train a model.
 
-The system first tries to resolve transactions using deterministic checks. It handles exact matches, ID differences, small rounding differences, settlement delays and payout groups.
+## Two screens (easy to mix up)
 
-Transactions that cannot be safely matched are kept as exceptions instead of being forced into a match.
+| Screen | File / command | What it is |
+|--------|----------------|------------|
+| **Upload workspace** | `./venv/bin/python controller_server.py` → http://127.0.0.1:8765/ | Drop three CSVs, validate, run recon, review exceptions, override with a note |
+| **Offline report** | open `dashboard.html` in a browser | Snapshot after `python3 main.py` — no upload, no server |
 
-For those exceptions, the system can use a rule-based classifier, a self-trained ML model, or Gemini to help identify the likely cause.
+If you need the drop-zone story, use the controller. `dashboard.html` is only the results write-up.
 
-## Architecture
-
-```
-data_generator.py  → three linked, deliberately-imperfect CSVs + ground truth
-matcher.py         → Tier 1 (exact) → Tier 2 (fuzzy/tolerance) → Tier 3 (exception)
-exception_classifier.py → reasons about cause for the Tier 3 tail
-                          (rule-based fallback, or Gemini API if a key is set)
-main.py            → orchestrates the pipeline, self-scores against ground
-                      truth, writes results.json
-dashboard.html      → renders results.json (already embedded — open directly,
-                      no server needed)
-controller.html     → Finance Controller workspace (upload → validate → reconcile)
-controller_server.py→ local HTTP API for the controller workspace
-```
-
-### Finance Controller (upload workspace)
-
-```bash
-./venv/bin/python controller_server.py
-# open http://127.0.0.1:8765/
-```
-
-Flow: **Control setup** → **Data validation** (strict money parsing, mapping preview, quarantine) → **Reconciliation** (frozen matcher) → **Exception review**. The default queue is exceptions; reconciled and pending rows sit on secondary tabs so a cleared match can still be audited. Invalid critical amounts block the run as `VALIDATION_FAILED`. Confidence scores appear only on uncertain exception classifications.
-
-### Evaluation (held-out + adversarial)
-
-Held-out sets (`easy_100` / `medium_100` / `hard_100`) and the adversarial
-suites share one protocol: adapter → frozen matcher → `evaluator.py`.
-The agent never reads labels. Matcher / classifier / held-out CSVs stay frozen.
-
-```bash
-./venv/bin/python evaluation_datasets/run_heldout.py
-./venv/bin/python evaluation_datasets/run_adversarial.py
-```
-
-Details: `evaluation_datasets/EVALUATION.md`.
-
-```mermaid
-graph TD
-    subgraph Inputs [Source Files]
-        L[Internal Ledger]
-        S[Settlement Report]
-        B[Bank Statement]
-    end
-
-    subgraph Matcher [Tiered Matching Engine]
-        T1[Tier 1: Exact Match]
-        T2[Tier 2: Fuzzy/Tolerance Match]
-        T3[Tier 3: Exception Identification]
-        Inputs --> T1
-        T1 -->|Unmatched| T2
-        T2 -->|Unmatched| T3
-    end
-
-    subgraph Classifiers [Exception Classification]
-        T3 -->|Exceptions| Choice{Classifier Flag?}
-        Choice -->|Default| RB[Rule-Based Classifier]
-        Choice -->|--ml| ML[Self-Trained ML Model]
-        Choice -->|--llm| LLM[Gemini API Classifier]
-
-        ML -->|Low Confidence| Esc{Escalation Gated?}
-        Esc -->|Yes & Key Set| GemEsc[Gemini Escalation Tier]
-        Esc -->|No Key / High Conf| MLOut[Local ML Result]
-
-        LLM -->|No Key / Failed| Fallback[Rule-Based Fallback]
-    end
-
-    subgraph Outputs [Reporting & Visualization]
-        RB --> Results[results.json]
-        MLOut --> Results
-        GemEsc --> Results
-        Fallback --> Results
-        LLM --> Results
-
-        Results --> Dash[dashboard.html]
-    end
-```
-
-## What it can detect
-
-Some of the cases handled by the system include:
-
-* Exact matches
-* ID and formatting differences
-* Rounding differences
-* Settlement delays
-* TDS and gateway fees
-* Partial and full refunds
-* Duplicate gateway records
-* Duplicate bank credits
-* Missing settlements
-* Missing bank credits
-* Wrong transaction references
-* Amount mismatches
-* Ambiguous matches
-
-## Data ingestion
-
-The controller has a separate ingestion step before reconciliation.
+## Flow
 
 ```text
-Upload
-  ↓
-Detect source
-  ↓
-Validate
-  ↓
-Preview mapping
-  ↓
-Reconcile
+Three CSVs
+    ↓
+Check money cells and columns
+    ↓
+Match what is safe
+    ↓
+Name the leftovers
+    ↓
+Review (and override if needed)
 ```
 
-Financial values are checked before they reach the matcher.
+Rough match order: exact → small fee / TDS / rounding → lag / batch payouts → leave the rest as exceptions. Credits still inside the SLA stay **pending**, not failed.
 
-The parser treats these differently:
-
-```text
-0.00       → valid zero
-blank      → missing
-₹4,500     → valid amount
-abc        → invalid
-```
-
-A required invalid or missing monetary value blocks reconciliation instead of being silently converted to zero.
-
-Invalid cells are reported with the file, row, field and error so they can be fixed before running the reconciliation.
-
-## Matching
-
-The matching process is deliberately conservative.
-
-A transaction is only cleared when there is enough evidence to do so. Otherwise it becomes an exception or is sent for further review.
-
-The system supports:
-
-```text
-Exact
-Fuzzy
-Tolerance
-Many-to-one
-One-to-many
-Exception
-```
-
-The goal is not to match everything. It is to avoid saying that money is reconciled when it is not.
-
-## Exception classification
-
-Once matching is finished, unresolved transactions are classified.
-
-There are three options:
-
-**Rules** — fast and deterministic.
-
-**ML** — a model trained on synthetic exception data.
-
-**Gemini** — used when additional reasoning is useful, including low-confidence cases.
-
-The result includes the suspected cause, confidence and the evidence used to explain the exception.
-
-## Evaluation
-
-The reconciliation engine was tested on three separate held-out datasets containing 100 transactions each.
-
-|                           | Easy | Medium |  Hard |
-| ------------------------- | ---: | -----: | ----: |
-| Decision accuracy         | 100% |   100% |  100% |
-| False matches             |    0 |      0 |     0 |
-| Match precision           | 100% |   100% |  100% |
-| Match recall              | 100% |   100% |  100% |
-| Exception reason accuracy |  95% |  92.5% | 94.4% |
-
-That gives **300/300 correct MATCH vs EXCEPTION decisions with zero false matches** on the current synthetic held-out tests.
-
-These are synthetic datasets, so these numbers should not be treated as production accuracy.
-
-## Running it
-
-Create the environment and install the dependencies:
+## Try it
 
 ```bash
 python3 -m venv venv
@@ -214,67 +43,152 @@ source venv/bin/activate
 pip install -r requirements.txt
 ```
 
-Run the normal pipeline:
+**Demo report (no server):**
 
 ```bash
-python3 main.py
+python3 main.py          # writes results.json and refreshes dashboard.html
+open dashboard.html      # or just open the file in your browser
 ```
 
-Run ML classification:
+**With upload UI:**
 
 ```bash
+./venv/bin/python controller_server.py
+# browser: http://127.0.0.1:8765/
+```
+
+Upload ledger + settlement + bank → validate → run. Exception queue is the default. You can force match, force exception, or mark pending; it asks for a short audit note.
+
+**Optional ML on exceptions:**
+
+```bash
+python3 train_model.py   # once, if you want the model file
 python3 main.py --ml
 ```
 
-Run Gemini:
-
-```bash
-export GEMINI_MODEL=gemini-3.1-flash-lite
-python3 main.py --llm
-```
-
-Run the held-out evaluation:
-
-```bash
-python3 evaluation_datasets/run_heldout.py
-```
-
-If `python` is not available on macOS, use:
+**Held-out score check:**
 
 ```bash
 ./venv/bin/python evaluation_datasets/run_heldout.py
 ```
 
-## Project structure
+More on scoring: `evaluation_datasets/EVALUATION.md`.
+
+## What it usually catches
+
+- Exact ties  
+- ID formatting quirks (hyphens, case)  
+- Rounding and fee / TDS gaps  
+- Settlement lag and batch payouts  
+- Duplicate ledger or bank rows  
+- Missing settlement or missing bank credit  
+- Refunds / reversals when the files show it  
+- Chargeback-style wording when it shows up in narration  
+
+If proof is thin, it does not invent a clear.
+
+## Upload checks (controller)
+
+Before matching, money fields are parsed carefully:
+
+```text
+0.00     ok (real zero)
+blank    missing
+₹4,500   ok
+abc      bad
+```
+
+A bad required amount stops the run (`VALIDATION_FAILED`) instead of becoming a quiet zero. The UI shows file, row, and field.
+
+## CSV shapes
+
+Point `python3 main.py --data-dir PATH` at a folder with the three files, or upload the same kinds in the controller.
+
+**Built-in demo style** (`data/`):
+
+| File | Need at least |
+|------|----------------|
+| `internal_ledger.csv` | `order_id`, `order_date`, `amount`, `customer` |
+| `settlement_report.csv` | `order_id`, `gross_amount`, `net_amount` (+ dates, fee, tds, refund helps) |
+| `bank_statement.csv` | `reference`, `credit_amount` (+ dates, debit, narration helps) |
+
+**Held-out / eval style:**
+
+| File | Need at least |
+|------|----------------|
+| `internal_ledger.csv` | `order_id` or `merchant_order_id` |
+| `gateway_settlement.csv` | order id + `gross_amount`, `net_amount` |
+| `bank_statement.csv` | `credit_amount` (+ date / reference) |
+
+Optional `recon_meta.json`:
+
+```json
+{ "as_of": "2026-08-05", "sla_days": 7 }
+```
+
+Without an `as_of` date, missing bank rows are treated as aged (closed books), not pending.
+
+Wrong layout → `SCHEMA_ERROR`. Bad money → `VALIDATION_FAILED`.
+
+## Matching stance
+
+Clear only when evidence is enough. Otherwise exception or pending. The point is not “match everything”; it is “don’t say money is fine when it isn’t.”
+
+## Naming leftovers
+
+Default: rules. Optional: `--ml` after training.
+
+Each open row gets a cause, short plain-English evidence, and severity. Confidence shows mainly when the call is shaky — not on every obvious case.
+
+## Scores on held-out sets
+
+Three separate 100-row sets the matcher did not train on:
+
+|                           | Easy | Medium | Hard |
+| ------------------------- | ---: | -----: | ---: |
+| Decision (match vs break) | 100% |   100% | 100% |
+| False clears              |    0 |      0 |    0 |
+| Match precision / recall  | 100% |   100% | 100% |
+| Exception reason (when both sides exception) | 100% | 100% | 94.4% |
+
+So **300/300** match-vs-exception decisions and **zero false clears** on these synthetic sets. Real production books will look messier; treat the numbers as a lab check, not a guarantee.
+
+```bash
+./venv/bin/python evaluation_datasets/run_heldout.py
+./venv/bin/python evaluation_datasets/run_adversarial.py
+```
+
+## Layout
 
 ```text
 reconagent/
-├── main.py
+├── main.py                 # offline pipeline → results + dashboard
 ├── matcher.py
-├── exception_classifier.py
+├── exception_classifier.py # rules (default)
 ├── ingest_adapter.py
 ├── ingest_validate.py
 ├── money.py
+├── schema_contract.py
 ├── validate_sources.py
 ├── predictions.py
-├── train_model.py
+├── train_model.py          # optional ML
+├── ml_classifier.py
+├── ml_features.py
+├── requirements.txt
+├── matching_policy.json
 │
-├── controller.html
+├── controller.html         # upload UI
 ├── controller_server.py
-├── dashboard.html
+├── controller_batch.py
+├── dashboard.html          # offline report (embedded results)
+├── dashboard_template.html
 │
+├── data/                   # demo CSVs + recon_meta.json
 ├── evaluation_datasets/
 ├── tests/
-├── models/
-├── batches/
-└── results/
+└── exception_model.joblib  # only after train_model.py
 ```
 
-## The main idea
+## One-liner
 
-ReconAgent is built around one simple rule:
-
-> **Match what can be proved. Flag what cannot.**
-
-The system uses normal financial checks for straightforward cases and brings in ML or Gemini only when an exception needs more analysis.
-# ReconAgent
+Prove the clear. Leave the rest open with a reason someone can check.

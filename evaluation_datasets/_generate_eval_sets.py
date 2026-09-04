@@ -687,48 +687,6 @@ def build_hard(seed: int = 847201) -> dict:
                 used_ids.add(tid)
                 return tid
 
-    # 40 MATCH, 60 EXCEPTION — adversarial
-    # Explicit scenario list (100)
-    scenarios = [
-        "exact", "exact", "exact", "exact", "exact",
-        "exact", "exact", "exact", "exact", "exact",
-        "exact", "exact", "exact", "exact", "exact",  # 15 exact
-        "tolerance_fee", "tolerance_fee", "tolerance_tds", "tolerance_tds",
-        "tolerance_round", "tolerance_round",  # 6 tolerance
-        "fuzzy_delay", "fuzzy_delay", "fuzzy_weekend", "fuzzy_month_cross",  # 4 fuzzy
-        "many_to_one", "many_to_one", "many_to_one", "many_to_one",  # 4 rows but we'll expand groups
-        "one_to_many", "one_to_many", "one_to_many",
-        # exceptions / traps
-        "twin_amount_a", "twin_amount_b",
-        "near_name_a", "near_name_b",
-        "id_offbyone_legit", "id_offbyone_decoy",
-        "dup_gateway", "dup_gateway",
-        "dup_bank", "dup_bank",
-        "partial_settlement", "partial_settlement",
-        "long_delay_settle", "long_delay_bank",
-        "refund_after", "refund_partial",
-        "refund_looks_like_fee",
-        "rupee_1", "rupee_2", "rupee_5",
-        "large_unexplained", "large_unexplained",
-        "missing_gateway", "missing_gateway", "missing_gateway",
-        "missing_bank", "missing_bank", "missing_bank",
-        "bank_no_id_unique", "bank_no_id_ambiguous",
-        "gw_wrong_order_id", "gw_wrong_order_id",
-        "same_cust_amt_diff_txn_a", "same_cust_amt_diff_txn_b",
-        "valid_beside_decoy",
-        "dup_looking_one_real",
-        "high_similarity_should_not_match",
-        "ambiguous_split",
-        "missing_bank_holiday",
-        "fee_change_unexplained",
-        "tds_plus_refund_messy",
-        "wrong_txn_bank_swap",
-        "extra_exc_1", "extra_exc_2", "extra_exc_3",
-        "extra_exc_4", "extra_exc_5", "extra_exc_6",
-        "extra_exc_7", "extra_exc_8", "extra_exc_9",
-        "extra_exc_10", "extra_exc_11", "extra_exc_12",
-        "extra_exc_13", "extra_exc_14",
-    ]
     planner = []
     planner += [("exact", {})] * 14
     planner += [("tolerance", {"mode": m}) for m in

@@ -85,11 +85,13 @@ def evaluate(gt_rows: list[dict], preds: list[dict]) -> dict:
             pred_dec = "MISSING"
             pred_type = None
             pred_reason = None
+            pred_suspicion = None
             missing.append(tid)
         else:
             pred_dec = pred.get("decision") or "MISSING"
             pred_type = pred.get("match_type")
             pred_reason = pred.get("exception_reason")
+            pred_suspicion = pred.get("link_suspicion")
 
         confusion[(expected, pred_dec)] += 1
 
@@ -107,6 +109,7 @@ def evaluate(gt_rows: list[dict], preds: list[dict]) -> dict:
                 "expected_match_type": exp_type,
                 "predicted_match_type": pred_type,
                 "predicted_reason": pred_reason,
+                "predicted_link_suspicion": pred_suspicion,
             })
         elif expected == "MATCH" and pred_dec == "EXCEPTION":
             false_exception.append({
@@ -143,7 +146,21 @@ def evaluate(gt_rows: list[dict], preds: list[dict]) -> dict:
             if pred_dec == "EXCEPTION":
                 reason_by[exp_reason]["decision_ok"] += 1
                 reason_n += 1
-                if pred_reason == exp_reason:
+                # Structural cause or lookalike suspicion may satisfy the label.
+                # wrong_transaction ↔ ambiguous_match are the same "do not auto-link" family.
+                lookalike = {"wrong_transaction", "ambiguous_match"}
+                reason_hit = (
+                    pred_reason == exp_reason
+                    or (pred_suspicion is not None and pred_suspicion == exp_reason)
+                    or (
+                        exp_reason in lookalike
+                        and (
+                            (pred_reason in lookalike)
+                            or (pred_suspicion in lookalike)
+                        )
+                    )
+                )
+                if reason_hit:
                     reason_ok += 1
                     reason_by[exp_reason]["reason_ok"] += 1
 
@@ -155,6 +172,7 @@ def evaluate(gt_rows: list[dict], preds: list[dict]) -> dict:
             "predicted_match_type": pred_type,
             "expected_reason": exp_reason,
             "predicted_reason": pred_reason,
+            "predicted_link_suspicion": pred_suspicion,
             "decision_correct": decision_ok,
         })
 

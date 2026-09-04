@@ -12,6 +12,8 @@ REASON_TO_EVAL = {
     "aged_missing_bank": "missing_bank_credit",
     "refund_partial": "refund_partial",
     "refund_full": "refund_full",
+    "chargeback": "refund_full",
+    "reversal": "refund_full",
     "amount_mismatch": "amount_mismatch",
     "wrong_transaction": "wrong_transaction",
     "ambiguous_match": "ambiguous_match",
@@ -21,6 +23,7 @@ REASON_TO_EVAL = {
     "fee_variance": "unexplained_variance",
     "tds_deduction": "tds_issue",
     "rounding": "unexplained_variance",
+    "operator_override": "unexplained_variance",
 }
 
 
@@ -56,17 +59,21 @@ def _match_type_from_rule(rule: str | None, bucket: str, rec: dict | None = None
     return None
 
 
-def _one(order_id, decision, match_type, rec, cause=None):
+def _one(order_id, decision, match_type, rec, cause=None, link_suspicion=None):
     rule = rec.get("matched_by_rule")
     reason = None
+    suspicion_eval = None
     if decision == "EXCEPTION":
         reason = REASON_TO_EVAL.get(cause or "", cause)
+        if link_suspicion:
+            suspicion_eval = REASON_TO_EVAL.get(link_suspicion, link_suspicion)
     return {
         "order_id": order_id,
         "canonical_id": canonicalize_id(order_id),
         "decision": decision,  # MATCH | REVIEW | EXCEPTION | PENDING
         "match_type": match_type,
         "exception_reason": reason,
+        "link_suspicion": suspicion_eval,
         "confidence": rec.get("confidence"),
         "amount": _amount(rec),
         "matched_by_rule": rule,
@@ -81,7 +88,7 @@ def build_predictions(match_results: dict, classified_exceptions: list) -> list[
     out = []
     seen = set()
 
-    def add(bucket, rec, decision, match_type, cause=None):
+    def add(bucket, rec, decision, match_type, cause=None, link_suspicion=None):
         oid = rec["order_id"]
         if oid in seen:
             return
@@ -90,10 +97,14 @@ def build_predictions(match_results: dict, classified_exceptions: list) -> list[
         if oid in by_exc:
             classified = by_exc[oid]
             cause = cause or classified.get("cause")
+            if link_suspicion is None:
+                link_suspicion = classified.get("link_suspicion")
             merged["confidence"] = classified.get("confidence", rec.get("confidence"))
             merged["reasoning"] = classified.get("reasoning")
             merged["symptoms"] = classified.get("symptoms") or rec.get("symptoms") or []
-        out.append(_one(oid, decision, match_type, merged, cause=cause))
+        out.append(
+            _one(oid, decision, match_type, merged, cause=cause, link_suspicion=link_suspicion)
+        )
 
     for rec in match_results.get("exact") or []:
         add("exact", rec, "MATCH", _match_type_from_rule(rec.get("matched_by_rule"), "exact", rec))
@@ -105,7 +116,14 @@ def build_predictions(match_results: dict, classified_exceptions: list) -> list[
     for rec in match_results.get("pending") or []:
         add("pending", rec, "PENDING", None)
     for rec in match_results.get("exceptions") or []:
-        cause = (by_exc.get(rec["order_id"]) or {}).get("cause")
-        add("exceptions", rec, "EXCEPTION", "EXCEPTION", cause=cause)
+        classified = by_exc.get(rec["order_id"]) or {}
+        add(
+            "exceptions",
+            rec,
+            "EXCEPTION",
+            "EXCEPTION",
+            cause=classified.get("cause"),
+            link_suspicion=classified.get("link_suspicion"),
+        )
 
     return out

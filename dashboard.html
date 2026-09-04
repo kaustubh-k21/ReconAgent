@@ -383,13 +383,13 @@
     "exact_matches": 34,
     "fuzzy_matches": 19,
     "review_matches": 0,
-    "pending_bank": 0,
-    "exceptions": 17,
+    "pending_bank": 6,
+    "exceptions": 11,
     "match_rate": 0.7571,
     "auto_match_rate": 0.7571,
     "auto_plus_review_rate": 0.7571,
-    "classifier_mode": "gemini_fallback_to_rule_based",
-    "self_scored_accuracy": 0.9,
+    "classifier_mode": "rule_based",
+    "self_scored_accuracy": 0.9857,
     "self_score_is_in_distribution_only": true,
     "ground_truth_available": true,
     "ingest": {
@@ -398,6 +398,7 @@
       "adapted": false,
       "schema": "engine",
       "normalize_ids": false,
+      "copied_recon_meta": true,
       "money_validation": "OK",
       "ledger_rows": 73,
       "settlement_rows": 69,
@@ -408,16 +409,13 @@
         "gross_amount": "amount"
       }
     },
-    "gemini_fallback_count": 5,
-    "escalation_attempted_count": 0,
-    "escalation_succeeded_count": 0,
     "leg_summary": {
       "A_posted": 66,
       "A_failed": 4,
       "B_posted": 53,
-      "B_pending": 0,
+      "B_pending": 6,
       "B_review": 0,
-      "B_failed": 13
+      "B_failed": 7
     },
     "rule_counts": {
       "tolerance_fee_tds_round": 15,
@@ -426,13 +424,13 @@
       "batch_n_to_1": 3
     },
     "severity_breakdown": {
-      "critical": 17
+      "critical": 11
     },
     "policy": {
       "sla_days": 7,
       "as_of": "2026-08-05"
     },
-    "generated_at": "2026-08-31T01:14:56.531790",
+    "generated_at": "2026-09-04T14:34:01.816195",
     "dry_run": false
   },
   "exact_matches": [
@@ -1645,15 +1643,143 @@
     }
   ],
   "review_matches": [],
-  "pending": [],
+  "pending": [
+    {
+      "order_id": "ORD1018",
+      "amount": "29858.91",
+      "confidence": 0.95,
+      "note": "bank credit not yet received (4d < SLA 7d)",
+      "matched_by_rule": "pending_bank",
+      "auto_confirmed": false,
+      "leg_a": {
+        "leg": "A",
+        "status": "posted",
+        "rule_id": "exact_standard_fee",
+        "confidence": 1.0
+      },
+      "leg_b": {
+        "leg": "B",
+        "status": "pending",
+        "rule_id": "pending_bank",
+        "confidence": 0.95,
+        "note": "bank credit not yet received (4d < SLA 7d)"
+      }
+    },
+    {
+      "order_id": "ORD1020",
+      "amount": "14371.37",
+      "confidence": 0.95,
+      "note": "bank credit not yet received (4d < SLA 7d)",
+      "matched_by_rule": "pending_bank",
+      "auto_confirmed": false,
+      "leg_a": {
+        "leg": "A",
+        "status": "posted",
+        "rule_id": "exact_standard_fee",
+        "confidence": 1.0
+      },
+      "leg_b": {
+        "leg": "B",
+        "status": "pending",
+        "rule_id": "pending_bank",
+        "confidence": 0.95,
+        "note": "bank credit not yet received (4d < SLA 7d)"
+      }
+    },
+    {
+      "order_id": "ORD1028",
+      "amount": "21547.30",
+      "confidence": 0.95,
+      "note": "bank credit not yet received (0d < SLA 7d)",
+      "matched_by_rule": "pending_bank",
+      "auto_confirmed": false,
+      "leg_a": {
+        "leg": "A",
+        "status": "posted",
+        "rule_id": "exact_standard_fee",
+        "confidence": 1.0
+      },
+      "leg_b": {
+        "leg": "B",
+        "status": "pending",
+        "rule_id": "pending_bank",
+        "confidence": 0.95,
+        "note": "bank credit not yet received (0d < SLA 7d)"
+      }
+    },
+    {
+      "order_id": "ORD1030",
+      "amount": "38940.74",
+      "confidence": 0.95,
+      "note": "bank credit not yet received (0d < SLA 7d)",
+      "matched_by_rule": "pending_bank",
+      "auto_confirmed": false,
+      "leg_a": {
+        "leg": "A",
+        "status": "posted",
+        "rule_id": "exact_standard_fee",
+        "confidence": 1.0
+      },
+      "leg_b": {
+        "leg": "B",
+        "status": "pending",
+        "rule_id": "pending_bank",
+        "confidence": 0.95,
+        "note": "bank credit not yet received (0d < SLA 7d)"
+      }
+    },
+    {
+      "order_id": "ORD1036",
+      "amount": "29520.45",
+      "confidence": 0.95,
+      "note": "bank credit not yet received (0d < SLA 7d)",
+      "matched_by_rule": "pending_bank",
+      "auto_confirmed": false,
+      "leg_a": {
+        "leg": "A",
+        "status": "posted",
+        "rule_id": "exact_standard_fee",
+        "confidence": 1.0
+      },
+      "leg_b": {
+        "leg": "B",
+        "status": "pending",
+        "rule_id": "pending_bank",
+        "confidence": 0.95,
+        "note": "bank credit not yet received (0d < SLA 7d)"
+      }
+    },
+    {
+      "order_id": "ORD1064",
+      "amount": "20161.68",
+      "confidence": 0.95,
+      "note": "bank credit not yet received (0d < SLA 7d)",
+      "matched_by_rule": "pending_bank",
+      "auto_confirmed": false,
+      "leg_a": {
+        "leg": "A",
+        "status": "posted",
+        "rule_id": "exact_standard_fee",
+        "confidence": 1.0
+      },
+      "leg_b": {
+        "leg": "B",
+        "status": "pending",
+        "rule_id": "pending_bank",
+        "confidence": 0.95,
+        "note": "bank credit not yet received (0d < SLA 7d)"
+      }
+    }
+  ],
   "exceptions": [
     {
       "order_id": "ORD1004",
       "amount": 44881.0,
       "cause": "duplicate_credit",
-      "confidence": 1.0,
-      "reasoning": "The bank statement contains two identical credit entries of 43983.38 on 2026-07-10 for order ORD1004, causing a cardinality break.",
-      "actually_used": "gemini_api",
+      "link_suspicion": null,
+      "confidence": 0.95,
+      "reasoning": "ORD1004 has duplicate credit rows (2x) in the bank statement with identical amounts of \u20b943983.38 \u2014 looks like duplicate credit payouts.",
+      "actually_used": "rule_based",
       "symptoms": [
         "cardinality_break"
       ],
@@ -1671,6 +1797,8 @@
         "subtype": "duplicate_bank_credit",
         "note": "2 identical bank credits"
       },
+      "candidate_bank_refs": null,
+      "candidate_settlement_ids": null,
       "display_cause": "Duplicate bank credit",
       "evidence_teaser": "2 identical bank credits of \u20b943,983.38 on this reference.",
       "evidence_facts": [
@@ -1682,9 +1810,10 @@
       "order_id": "ORD1065",
       "amount": 42554.77,
       "cause": "missing_settlement",
+      "link_suspicion": null,
       "confidence": 0.85,
       "reasoning": "ORD1065 exists in the ledger but never appears in settlement or the bank statement \u2014 the payment likely never actually settled.",
-      "actually_used": "rule_based_fallback",
+      "actually_used": "rule_based",
       "symptoms": [
         "one_sided_no_settlement"
       ],
@@ -1695,6 +1824,8 @@
         "status": "missing_settlement"
       },
       "leg_b": null,
+      "candidate_bank_refs": null,
+      "candidate_settlement_ids": null,
       "display_cause": "Missing settlement",
       "evidence_teaser": "ORD1065 is in the ledger but has no settlement row.",
       "evidence_facts": [
@@ -1706,9 +1837,10 @@
       "order_id": "ORD1057",
       "amount": 40092.22,
       "cause": "duplicate_credit",
-      "confidence": 1.0,
-      "reasoning": "The bank statement contains two identical credit entries of 39,290.38 INR for order ORD1057 on 2026-07-06, while the ledger and settlement only record one corresponding entry.",
-      "actually_used": "gemini_api",
+      "link_suspicion": null,
+      "confidence": 0.95,
+      "reasoning": "ORD1057 has duplicate credit rows (2x) in the bank statement with identical amounts of \u20b939290.38 \u2014 looks like duplicate credit payouts.",
+      "actually_used": "rule_based",
       "symptoms": [
         "cardinality_break"
       ],
@@ -1726,6 +1858,8 @@
         "subtype": "duplicate_bank_credit",
         "note": "2 identical bank credits"
       },
+      "candidate_bank_refs": null,
+      "candidate_settlement_ids": null,
       "display_cause": "Duplicate bank credit",
       "evidence_teaser": "2 identical bank credits of \u20b939,290.38 on this reference.",
       "evidence_facts": [
@@ -1734,55 +1868,13 @@
       "evidence_action": "Confirm with the bank whether one credit should be reversed."
     },
     {
-      "order_id": "ORD1030",
-      "amount": 38940.74,
-      "cause": "wrong_transaction",
-      "confidence": 0.78,
-      "reasoning": "ORD1030 has no safe direct link, but a different transaction is the unique amount/date or near-ID candidate (['ORD1000', 'ORD1010', 'ORD1031', 'ORD1031', 'ORD1032']) \u2014 do not auto-link it.",
-      "actually_used": "rule_based_fallback",
-      "symptoms": [
-        "one_sided_no_bank_past_sla",
-        "wrong_transaction_candidate"
-      ],
-      "severity": "critical",
-      "age_days": 0,
-      "leg_a": {
-        "leg": "A",
-        "status": "posted",
-        "rule_id": "exact_standard_fee",
-        "confidence": 1.0
-      },
-      "leg_b": {
-        "leg": "B",
-        "status": "aged_missing",
-        "rule_id": null,
-        "note": "bank credit missing 0d past SLA 7d",
-        "age_days": 0
-      },
-      "candidate_bank_refs": [
-        "ORD1000",
-        "ORD1010",
-        "ORD1031",
-        "ORD1031",
-        "ORD1032"
-      ],
-      "display_cause": "Possible reference mismatch",
-      "evidence_teaser": "Bank credit missing past SLA. Similar credit found elsewhere \u2014 not auto-linked.",
-      "evidence_facts": [
-        "Expected bank credit not found under ORD1030.",
-        "Age is 0 day(s); SLA window is 7 days.",
-        "Settled net \u20b938,161.93 has no matching credit on this reference.",
-        "A similar credit appears under ORD1000, ORD1010, ORD1031 and was not auto-linked."
-      ],
-      "evidence_action": "Verify the UTR and bank reference before clearing."
-    },
-    {
       "order_id": "ORD1040",
       "amount": 35438.26,
       "cause": "duplicate_credit",
-      "confidence": 1.0,
-      "reasoning": "The bank statement contains two identical credit entries of 34729.49 INR on 2026-07-28 for order ORD1040, while there is only one corresponding ledger and settlement entry.",
-      "actually_used": "gemini_api",
+      "link_suspicion": null,
+      "confidence": 0.95,
+      "reasoning": "ORD1040 has duplicate credit rows (2x) in the bank statement with identical amounts of \u20b934729.49 \u2014 looks like duplicate credit payouts.",
+      "actually_used": "rule_based",
       "symptoms": [
         "cardinality_break"
       ],
@@ -1800,6 +1892,8 @@
         "subtype": "duplicate_bank_credit",
         "note": "2 identical bank credits"
       },
+      "candidate_bank_refs": null,
+      "candidate_settlement_ids": null,
       "display_cause": "Duplicate bank credit",
       "evidence_teaser": "2 identical bank credits of \u20b934,729.49 on this reference.",
       "evidence_facts": [
@@ -1811,9 +1905,10 @@
       "order_id": "ORD1005",
       "amount": 34132.31,
       "cause": "duplicate_entry",
-      "confidence": 0.98,
-      "reasoning": "The order ORD1005 appears twice in the ledger with an amount of 34132.31, while there is only a single matching settlement and bank entry of 33449.66.",
-      "actually_used": "gemini_api",
+      "link_suspicion": null,
+      "confidence": 0.9,
+      "reasoning": "ORD1005 appears 2 times in the internal ledger but only once downstream \u2014 looks like a duplicate order entry, not a payment issue.",
+      "actually_used": "rule_based",
       "symptoms": [
         "ledger_dupe"
       ],
@@ -1832,6 +1927,8 @@
         "confidence": 1.0,
         "lag_days": 0
       },
+      "candidate_bank_refs": null,
+      "candidate_settlement_ids": null,
       "display_cause": "Duplicate ledger entry",
       "evidence_teaser": "This order ID appears more than once in the ledger.",
       "evidence_facts": [
@@ -1843,9 +1940,10 @@
       "order_id": "ORD1031",
       "amount": 32905.5,
       "cause": "duplicate_credit",
+      "link_suspicion": null,
       "confidence": 0.95,
       "reasoning": "ORD1031 has duplicate credit rows (2x) in the bank statement with identical amounts of \u20b932247.39 \u2014 looks like duplicate credit payouts.",
-      "actually_used": "rule_based_fallback",
+      "actually_used": "rule_based",
       "symptoms": [
         "cardinality_break"
       ],
@@ -1863,6 +1961,8 @@
         "subtype": "duplicate_bank_credit",
         "note": "2 identical bank credits"
       },
+      "candidate_bank_refs": null,
+      "candidate_settlement_ids": null,
       "display_cause": "Duplicate bank credit",
       "evidence_teaser": "2 identical bank credits of \u20b932,247.39 on this reference.",
       "evidence_facts": [
@@ -1871,227 +1971,13 @@
       "evidence_action": "Confirm with the bank whether one credit should be reversed."
     },
     {
-      "order_id": "ORD1018",
-      "amount": 29858.91,
-      "cause": "aged_missing_bank",
-      "confidence": 0.95,
-      "reasoning": "The settlement entry for ORD1018 exists with a net amount of 29261.73 INR on 2026-08-01, but the corresponding bank credit is completely missing and is 4 days past the 7-day SLA window.",
-      "actually_used": "gemini_api",
-      "symptoms": [
-        "one_sided_no_bank_past_sla",
-        "wrong_transaction_candidate"
-      ],
-      "severity": "critical",
-      "age_days": 4,
-      "leg_a": {
-        "leg": "A",
-        "status": "posted",
-        "rule_id": "exact_standard_fee",
-        "confidence": 1.0
-      },
-      "leg_b": {
-        "leg": "B",
-        "status": "aged_missing",
-        "rule_id": null,
-        "note": "bank credit missing 4d past SLA 7d",
-        "age_days": 4
-      },
-      "candidate_bank_refs": [
-        "ORD1008",
-        "ORD1010",
-        "ORD1011",
-        "ORD1012",
-        "ORD1013"
-      ],
-      "display_cause": "Missing bank credit (past SLA)",
-      "evidence_teaser": "Bank credit still missing after the SLA window.",
-      "evidence_facts": [
-        "Expected bank credit not found under ORD1018.",
-        "Age is 4 day(s); SLA window is 7 days.",
-        "Settled net \u20b929,261.73 has no matching credit on this reference.",
-        "A similar credit appears under ORD1008, ORD1010, ORD1011 and was not auto-linked."
-      ],
-      "evidence_action": "Verify the UTR and bank reference before clearing."
-    },
-    {
-      "order_id": "ORD1036",
-      "amount": 29520.45,
-      "cause": "aged_missing_bank",
-      "confidence": 0.95,
-      "reasoning": "The ledger and settlement records for ORD1036 (gross amount 29520.45 INR) exist, but the corresponding bank credit is missing past the SLA window.",
-      "actually_used": "gemini_api",
-      "symptoms": [
-        "one_sided_no_bank_past_sla",
-        "wrong_transaction_candidate"
-      ],
-      "severity": "critical",
-      "age_days": 0,
-      "leg_a": {
-        "leg": "A",
-        "status": "posted",
-        "rule_id": "exact_standard_fee",
-        "confidence": 1.0
-      },
-      "leg_b": {
-        "leg": "B",
-        "status": "aged_missing",
-        "rule_id": null,
-        "note": "bank credit missing 0d past SLA 7d",
-        "age_days": 0
-      },
-      "candidate_bank_refs": [
-        "ORD1016",
-        "ORD1026",
-        "ORD1031",
-        "ORD1031",
-        "ORD1032"
-      ],
-      "display_cause": "Missing bank credit (past SLA)",
-      "evidence_teaser": "Bank credit still missing after the SLA window.",
-      "evidence_facts": [
-        "Expected bank credit not found under ORD1036.",
-        "Age is 0 day(s); SLA window is 7 days.",
-        "Settled net \u20b928,930.04 has no matching credit on this reference.",
-        "A similar credit appears under ORD1016, ORD1026, ORD1031 and was not auto-linked."
-      ],
-      "evidence_action": "Verify the UTR and bank reference before clearing."
-    },
-    {
-      "order_id": "ORD1028",
-      "amount": 21547.3,
-      "cause": "wrong_transaction",
-      "confidence": 0.78,
-      "reasoning": "ORD1028 has no safe direct link, but a different transaction is the unique amount/date or near-ID candidate (['ORD1008', 'ORD1021', 'ORD1022', 'ORD1023', 'ORD1025']) \u2014 do not auto-link it.",
-      "actually_used": "rule_based_fallback",
-      "symptoms": [
-        "one_sided_no_bank_past_sla",
-        "wrong_transaction_candidate"
-      ],
-      "severity": "critical",
-      "age_days": 0,
-      "leg_a": {
-        "leg": "A",
-        "status": "posted",
-        "rule_id": "exact_standard_fee",
-        "confidence": 1.0
-      },
-      "leg_b": {
-        "leg": "B",
-        "status": "aged_missing",
-        "rule_id": null,
-        "note": "bank credit missing 0d past SLA 7d",
-        "age_days": 0
-      },
-      "candidate_bank_refs": [
-        "ORD1008",
-        "ORD1021",
-        "ORD1022",
-        "ORD1023",
-        "ORD1025"
-      ],
-      "display_cause": "Possible reference mismatch",
-      "evidence_teaser": "Bank credit missing past SLA. Similar credit found elsewhere \u2014 not auto-linked.",
-      "evidence_facts": [
-        "Expected bank credit not found under ORD1028.",
-        "Age is 0 day(s); SLA window is 7 days.",
-        "Settled net \u20b921,116.35 has no matching credit on this reference.",
-        "A similar credit appears under ORD1008, ORD1021, ORD1022 and was not auto-linked."
-      ],
-      "evidence_action": "Verify the UTR and bank reference before clearing."
-    },
-    {
-      "order_id": "ORD1064",
-      "amount": 20161.68,
-      "cause": "wrong_transaction",
-      "confidence": 0.78,
-      "reasoning": "ORD1064 has no safe direct link, but a different transaction is the unique amount/date or near-ID candidate (['ORD1004', 'ORD1004', 'ORD1014', 'ORD1034', 'ORD1044']) \u2014 do not auto-link it.",
-      "actually_used": "rule_based_fallback",
-      "symptoms": [
-        "one_sided_no_bank_past_sla",
-        "wrong_transaction_candidate"
-      ],
-      "severity": "critical",
-      "age_days": 0,
-      "leg_a": {
-        "leg": "A",
-        "status": "posted",
-        "rule_id": "exact_standard_fee",
-        "confidence": 1.0
-      },
-      "leg_b": {
-        "leg": "B",
-        "status": "aged_missing",
-        "rule_id": null,
-        "note": "bank credit missing 0d past SLA 7d",
-        "age_days": 0
-      },
-      "candidate_bank_refs": [
-        "ORD1004",
-        "ORD1004",
-        "ORD1014",
-        "ORD1034",
-        "ORD1044"
-      ],
-      "display_cause": "Possible reference mismatch",
-      "evidence_teaser": "Bank credit missing past SLA. Similar credit found elsewhere \u2014 not auto-linked.",
-      "evidence_facts": [
-        "Expected bank credit not found under ORD1064.",
-        "Age is 0 day(s); SLA window is 7 days.",
-        "Settled net \u20b919,758.45 has no matching credit on this reference.",
-        "A similar credit appears under ORD1004, ORD1004, ORD1014 and was not auto-linked."
-      ],
-      "evidence_action": "Verify the UTR and bank reference before clearing."
-    },
-    {
-      "order_id": "ORD1020",
-      "amount": 14371.37,
-      "cause": "aged_missing_bank",
-      "confidence": 0.95,
-      "reasoning": "The settlement for ORD1020 exists with a net amount of 14,083.94 INR, but the corresponding bank credit remains missing 4 days past the 7-day SLA window.",
-      "actually_used": "gemini_api",
-      "symptoms": [
-        "one_sided_no_bank_past_sla",
-        "wrong_transaction_candidate"
-      ],
-      "severity": "critical",
-      "age_days": 4,
-      "leg_a": {
-        "leg": "A",
-        "status": "posted",
-        "rule_id": "exact_standard_fee",
-        "confidence": 1.0
-      },
-      "leg_b": {
-        "leg": "B",
-        "status": "aged_missing",
-        "rule_id": null,
-        "note": "bank credit missing 4d past SLA 7d",
-        "age_days": 4
-      },
-      "candidate_bank_refs": [
-        "ORD1000",
-        "ORD1010",
-        "ORD1021",
-        "ORD1022",
-        "ORD1023"
-      ],
-      "display_cause": "Missing bank credit (past SLA)",
-      "evidence_teaser": "Bank credit still missing after the SLA window.",
-      "evidence_facts": [
-        "Expected bank credit not found under ORD1020.",
-        "Age is 4 day(s); SLA window is 7 days.",
-        "Settled net \u20b914,083.94 has no matching credit on this reference.",
-        "A similar credit appears under ORD1000, ORD1010, ORD1021 and was not auto-linked."
-      ],
-      "evidence_action": "Verify the UTR and bank reference before clearing."
-    },
-    {
       "order_id": "ORD1038",
       "amount": 10011.75,
       "cause": "aged_missing_bank",
-      "confidence": 0.95,
-      "reasoning": "The settlement entry for net amount 9811.51 is present, but the corresponding bank credit is completely missing 10 days past the 7-day SLA.",
-      "actually_used": "gemini_api",
+      "link_suspicion": "wrong_transaction",
+      "confidence": 0.88,
+      "reasoning": "ORD1038 settled but the bank credit is still missing (bank credit missing 10d past SLA 7d) \u2014 timing artifact that aged past SLA, not a never-settled payment. Also flagged wrong transaction candidate(s) ['ORD1008', 'ORD1031', 'ORD1031', 'ORD1032', 'ORD1034'] \u2014 not auto-linked.",
+      "actually_used": "rule_based",
       "symptoms": [
         "one_sided_no_bank_past_sla",
         "wrong_transaction_candidate"
@@ -2118,8 +2004,10 @@
         "ORD1032",
         "ORD1034"
       ],
+      "candidate_settlement_ids": null,
       "display_cause": "Missing bank credit (past SLA)",
-      "evidence_teaser": "Bank credit still missing after the SLA window.",
+      "display_link_suspicion": "Possible reference mismatch",
+      "evidence_teaser": "Bank credit missing past SLA. Similar credit found elsewhere \u2014 not auto-linked.",
       "evidence_facts": [
         "Expected bank credit not found under ORD1038.",
         "Credit is 10 days old \u2014 3 day(s) past the 7-day SLA.",
@@ -2132,9 +2020,10 @@
       "order_id": "ORD1053",
       "amount": 9985.37,
       "cause": "amount_mismatch",
-      "confidence": 0.9,
-      "reasoning": "The bank credit amount of 4175.50 does not match the expected net settlement amount of 9785.66 or the ledger amount of 9985.37, resulting in a shortfall of 5610.16.",
-      "actually_used": "gemini_api",
+      "link_suspicion": "wrong_transaction",
+      "confidence": 0.88,
+      "reasoning": "ORD1053 settlement and bank amounts disagree (shortfall 5610.16) with no refund or debit evidence. Also flagged wrong transaction candidate(s) ['ORD1003', 'ORD1013', 'ORD1023', 'ORD1043', 'ORD1050'] \u2014 not auto-linked.",
+      "actually_used": "rule_based",
       "symptoms": [
         "under_amount",
         "wrong_transaction_candidate"
@@ -2160,8 +2049,10 @@
         "ORD1043",
         "ORD1050"
       ],
+      "candidate_settlement_ids": null,
       "display_cause": "Amount mismatch",
-      "evidence_teaser": "A similar credit appears under ORD1003, ORD1013, ORD1023 and was not auto-linked.",
+      "display_link_suspicion": "Possible reference mismatch",
+      "evidence_teaser": "Similar counterpart found on another reference \u2014 not auto-linked.",
       "evidence_facts": [
         "A similar credit appears under ORD1003, ORD1013, ORD1023 and was not auto-linked.",
         "Settled net \u20b99,785.66 does not equal bank credit \u20b94,175.50."
@@ -2172,9 +2063,10 @@
       "order_id": "ORD1006",
       "amount": 7619.2,
       "cause": "aged_missing_bank",
-      "confidence": 1.0,
-      "reasoning": "The settlement record with a net amount of INR 7466.82 exists, but the corresponding bank credit is completely missing 14 days past the 7-day SLA window.",
-      "actually_used": "gemini_api",
+      "link_suspicion": "wrong_transaction",
+      "confidence": 0.88,
+      "reasoning": "ORD1006 settled but the bank credit is still missing (bank credit missing 14d past SLA 7d) \u2014 timing artifact that aged past SLA, not a never-settled payment. Also flagged wrong transaction candidate(s) ['ORD1000', 'ORD1001', 'ORD1002', 'ORD1003', 'ORD1004'] \u2014 not auto-linked.",
+      "actually_used": "rule_based",
       "symptoms": [
         "one_sided_no_bank_past_sla",
         "wrong_transaction_candidate"
@@ -2201,8 +2093,10 @@
         "ORD1003",
         "ORD1004"
       ],
+      "candidate_settlement_ids": null,
       "display_cause": "Missing bank credit (past SLA)",
-      "evidence_teaser": "Bank credit still missing after the SLA window.",
+      "display_link_suspicion": "Possible reference mismatch",
+      "evidence_teaser": "Bank credit missing past SLA. Similar credit found elsewhere \u2014 not auto-linked.",
       "evidence_facts": [
         "Expected bank credit not found under ORD1006.",
         "Credit is 14 days old \u2014 7 day(s) past the 7-day SLA.",
@@ -2215,9 +2109,10 @@
       "order_id": "ORD1063",
       "amount": 6321.47,
       "cause": "duplicate_entry",
-      "confidence": 1.0,
-      "reasoning": "The order ORD1063 appears twice in the internal ledger with an amount of 6321.47, triggering the ledger_dupe symptom while only one settlement and bank entry exist.",
-      "actually_used": "gemini_api",
+      "link_suspicion": null,
+      "confidence": 0.9,
+      "reasoning": "ORD1063 appears 2 times in the internal ledger but only once downstream \u2014 looks like a duplicate order entry, not a payment issue.",
+      "actually_used": "rule_based",
       "symptoms": [
         "ledger_dupe"
       ],
@@ -2236,6 +2131,8 @@
         "confidence": 1.0,
         "lag_days": 0
       },
+      "candidate_bank_refs": null,
+      "candidate_settlement_ids": null,
       "display_cause": "Duplicate ledger entry",
       "evidence_teaser": "This order ID appears more than once in the ledger.",
       "evidence_facts": [
@@ -2247,9 +2144,10 @@
       "order_id": "ORD1021",
       "amount": 5884.69,
       "cause": "duplicate_entry",
-      "confidence": 1.0,
-      "reasoning": "The order ORD1021 appears twice in the internal ledger for 5884.69 INR, while there is only a single matching settlement and bank credit of 5767.00 INR.",
-      "actually_used": "gemini_api",
+      "link_suspicion": null,
+      "confidence": 0.9,
+      "reasoning": "ORD1021 appears 2 times in the internal ledger but only once downstream \u2014 looks like a duplicate order entry, not a payment issue.",
+      "actually_used": "rule_based",
       "symptoms": [
         "ledger_dupe"
       ],
@@ -2268,6 +2166,8 @@
         "confidence": 1.0,
         "lag_days": 0
       },
+      "candidate_bank_refs": null,
+      "candidate_settlement_ids": null,
       "display_cause": "Duplicate ledger entry",
       "evidence_teaser": "This order ID appears more than once in the ledger.",
       "evidence_facts": [
@@ -2279,9 +2179,8 @@
   "exception_cause_breakdown": {
     "duplicate_credit": 4,
     "missing_settlement": 1,
-    "wrong_transaction": 3,
     "duplicate_entry": 3,
-    "aged_missing_bank": 5,
+    "aged_missing_bank": 2,
     "amount_mismatch": 1
   },
   "ground_truth_scoring": [
@@ -2396,8 +2295,8 @@
     {
       "order_id": "ORD1018",
       "true_cause": "pending_bank",
-      "pipeline_outcome": "aged_missing_bank",
-      "correct": false
+      "pipeline_outcome": "pending_bank",
+      "correct": true
     },
     {
       "order_id": "ORD1019",
@@ -2408,8 +2307,8 @@
     {
       "order_id": "ORD1020",
       "true_cause": "pending_bank",
-      "pipeline_outcome": "aged_missing_bank",
-      "correct": false
+      "pipeline_outcome": "pending_bank",
+      "correct": true
     },
     {
       "order_id": "ORD1021",
@@ -2450,8 +2349,8 @@
     {
       "order_id": "ORD1028",
       "true_cause": "pending_bank",
-      "pipeline_outcome": "wrong_transaction",
-      "correct": false
+      "pipeline_outcome": "pending_bank",
+      "correct": true
     },
     {
       "order_id": "ORD1029",
@@ -2462,8 +2361,8 @@
     {
       "order_id": "ORD1030",
       "true_cause": "pending_bank",
-      "pipeline_outcome": "wrong_transaction",
-      "correct": false
+      "pipeline_outcome": "pending_bank",
+      "correct": true
     },
     {
       "order_id": "ORD1031",
@@ -2492,8 +2391,8 @@
     {
       "order_id": "ORD1036",
       "true_cause": "pending_bank",
-      "pipeline_outcome": "aged_missing_bank",
-      "correct": false
+      "pipeline_outcome": "pending_bank",
+      "correct": true
     },
     {
       "order_id": "ORD1037",
@@ -2654,8 +2553,8 @@
     {
       "order_id": "ORD1064",
       "true_cause": "pending_bank",
-      "pipeline_outcome": "wrong_transaction",
-      "correct": false
+      "pipeline_outcome": "pending_bank",
+      "correct": true
     },
     {
       "order_id": "ORD1065",
@@ -2748,9 +2647,9 @@
       "accuracy": 1.0
     },
     "pending_bank": {
-      "correct": 0,
+      "correct": 6,
       "total": 6,
-      "accuracy": 0.0
+      "accuracy": 1.0
     },
     "refund_partial": {
       "correct": 0,
@@ -2776,24 +2675,11 @@ const s = data.summary;
 
 const modeLabels = {
   rule_based: 'Rule-based',
-  gemini_api: 'Gemini API',
   ml: 'Self-trained model',
-  gemini_fallback_to_rule_based: `Gemini API (fell back to rule-based for ${s.gemini_fallback_count} of ${s.exceptions} exceptions)`,
-  ml_with_gemini_escalation: `Self-trained model + Gemini escalation (${s.escalation_attempted_count} of ${s.exceptions} low-confidence exceptions escalated)`
 };
 
 document.getElementById('fMode').textContent = modeLabels[s.classifier_mode] || s.classifier_mode;
 
-if (s.gemini_fallback_count > 0) {
-  const banner = document.getElementById('fallbackBanner');
-  banner.style.display = 'block';
-  banner.textContent = `⚠️ Gemini API unavailable for ${s.gemini_fallback_count} exception${s.gemini_fallback_count > 1 ? 's' : ''} this run; the rule-based explanation was retained.`;
-} else if (s.escalation_attempted_count > 0 && s.escalation_succeeded_count < s.escalation_attempted_count) {
-  const failedCount = s.escalation_attempted_count - s.escalation_succeeded_count;
-  const banner = document.getElementById('fallbackBanner');
-  banner.style.display = 'block';
-  banner.textContent = `⚠️ Gemini API unavailable for ${failedCount} low-confidence exception escalation${failedCount > 1 ? 's' : ''} this run; local model predictions were retained.`;
-}
 document.getElementById('fTotal').textContent = s.total_transactions;
 document.getElementById('tExact').textContent = s.exact_matches;
 document.getElementById('tFuzzy').textContent = s.fuzzy_matches;
@@ -2984,13 +2870,6 @@ data.exceptions.forEach(e=>{
     : '—';
 
   let fallbackTag = '';
-  if (e.actually_used === 'rule_based_fallback') {
-    fallbackTag = ' <span style="font-size:0.7rem; color:var(--rust-2); font-family:\'IBM Plex Mono\', monospace; margin-left:6px;">(fallback)</span>';
-  } else if (e.actually_used === 'gemini_escalation') {
-    fallbackTag = ' <span style="font-size:0.7rem; color:var(--forest-2); font-family:\'IBM Plex Mono\', monospace; margin-left:6px;">(Gemini reviewed)</span>';
-  } else if (e.actually_used === 'ml_escalation_attempted_fallback') {
-    fallbackTag = ' <span style="font-size:0.7rem; color:var(--rust); font-family:\'IBM Plex Mono\', monospace; margin-left:6px;">(escalation failed)</span>';
-  }
 
   const items = presented.facts.map((f) => `<li>${escapeHtml(f)}</li>`).join("");
 
@@ -3012,12 +2891,8 @@ data.exceptions.forEach(e=>{
 
 // Provenance calculation
 const provCounts = {
-  gemini_api: 0,
-  rule_based_fallback: 0,
   rule_based: 0,
   ml: 0,
-  gemini_escalation: 0,
-  ml_escalation_attempted_fallback: 0
 };
 
 data.exceptions.forEach(e => {
@@ -3026,12 +2901,8 @@ data.exceptions.forEach(e => {
 });
 
 const labelMap = {
-  gemini_api: 'Gemini API',
-  rule_based_fallback: 'Gemini Fallback',
   rule_based: 'Rule-based',
   ml: 'Local ML Model',
-  gemini_escalation: 'Gemini Escalated',
-  ml_escalation_attempted_fallback: 'Escalation Failed'
 };
 
 const provString = Object.entries(provCounts)

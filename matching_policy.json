@@ -6,6 +6,11 @@
   "fee_rate_candidates": [0.012, 0.015, 0.02, 0.025, 0.03],
   "rounding_tolerance_rupees": 1.0,
   "date_lag_tolerance_days": 7,
+  "lookalike": {
+    "amount_epsilon_rupees": 0.02,
+    "date_window_days": 7,
+    "require_nonblank_bank_ref_for_amount_match": true
+  },
   "confidence": {
     "auto": 0.9,
     "review": 0.6

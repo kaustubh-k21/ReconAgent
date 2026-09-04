@@ -65,6 +65,13 @@ class ControllerWorkflowUi(unittest.TestCase):
         self.assertIn("presentException", self.dash)
         self.assertNotIn("symptoms || []).slice(0, 3)", self.html)
 
+    def test_operator_override_controls_present(self):
+        self.assertIn("Force match", self.html)
+        self.assertIn("Force exception", self.html)
+        self.assertIn("/override", self.html)
+        self.assertIn("submitOverride", self.html)
+        self.assertIn("audit note", self.html.lower())
+
     def test_detection_does_not_print_confidence(self):
         self.assertIn("Detected role:", self.html)
         self.assertNotIn("Detected ${d.detected_role} · ${d.confidence}", self.html)

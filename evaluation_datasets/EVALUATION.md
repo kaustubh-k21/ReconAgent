@@ -1,62 +1,62 @@
-# Held-out evaluation protocol
+# Held-out evaluation
 
-Predictions are produced **without** `ground_truth.csv` or `dataset_metadata.json`.
+The agent only sees the three input CSVs. It never opens `ground_truth.csv` or `dataset_metadata.json` while scoring.
 
 ```text
-eval CSVs  →  ingest_adapter  →  matcher + classifier  →  predictions.json
+eval CSVs  →  adapt columns  →  match + classify  →  predictions.json
 ground_truth.csv  →  evaluator.py  ←  predictions.json
 ```
 
-## Run the three official sets
+## Run the three sets
 
 ```bash
 python evaluation_datasets/run_heldout.py
 ```
 
-Writes per dataset under `evaluation_datasets/_work/<name>/`:
+Per set under `evaluation_datasets/_work/<name>/`:
 
-- `engine/` — adapted files the matcher actually saw
-- `predictions.json` — agent output
-- `evaluation.json` — independent scores (includes `per_row`)
+- `engine/` — files the matcher actually used  
+- `predictions.json` — what the agent said  
+- `evaluation.json` — scores, including per-row detail  
 
-Summary: `evaluation_datasets/heldout_evaluation.json`
+Rollup: `evaluation_datasets/heldout_evaluation.json`
 
-## Adapter rules (fair)
+## What the adapter is allowed to do
 
-- Renames columns only (`merchant_order_id` → `order_id`, `value_date` → `credit_date`, …).
-- Does **not** copy labels into the engine folder.
-- Does **not** invent `settlement_batch_id` from ground truth.
-- **Declared ingest:** join keys are casefolded and hyphens stripped so `HSNE-1` and `HSNE1` can meet. Disable with `--no-normalize-ids`.
+- Rename columns (`merchant_order_id` → `order_id`, `value_date` → `credit_date`, and similar)  
+- Optionally normalize IDs (casefold, strip hyphens) so `HSNE-1` and `HSNE1` can meet — turn off with `--no-normalize-ids`  
 
-## What the evaluator reports (in order)
+It does **not** copy labels into the engine folder or invent batch IDs from ground truth.
 
-1. **False MATCH** — most important; auto-cleared a true break
-2. False EXCEPTION
-3. Decision accuracy (PENDING is not a correct MATCH or a caught EXCEPTION)
-4. Match-type accuracy, only when both sides MATCH
-5. Exception-reason accuracy, only when both sides EXCEPTION
+## What we care about first
 
-## Shared taxonomy (easy / medium / hard)
+1. **False clear** — called match when it should have stayed open (worst miss)  
+2. False exception  
+3. Decision accuracy (pending is neither a good match nor a caught break)  
+4. Match type, only when both sides say match  
+5. Exception reason, only when both sides say exception  
 
-Exception reasons for amount disagreement, with no refund or debit evidence:
+## Labels used on easy / medium / hard
 
-| Residual | Label |
-|---|---|
+Amount gaps with no refund or debit story:
+
+| Gap | Label |
+|-----|--------|
 | ≤ ₹10 | `unexplained_variance` |
-| > ₹10, or ledger↔gateway arithmetic break | `amount_mismatch` |
+| > ₹10, or ledger vs gateway math break | `amount_mismatch` |
 
-Match types when the expected decision is MATCH:
+When the expected answer is match:
 
-| Evidence | Label |
-|---|---|
+| Situation | Label |
+|-----------|--------|
 | Split captures / combined payouts | `ONE_TO_MANY` / `MANY_TO_ONE` |
-| ID format difference, or settlement→bank lag > 0 | `FUZZY` |
-| Fee-rate / TDS / sub-rupee rounding, same-day bank | `TOLERANCE` |
-| Standard 2% fee, same-day bank, native IDs | `EXACT` |
+| ID format difference, or settlement→bank lag | `FUZZY` |
+| Fee / TDS / tiny rounding, same-day bank | `TOLERANCE` |
+| Standard fee, same-day bank, normal IDs | `EXACT` |
 
-If both a delay and a fee variance apply, the label is `FUZZY`. Customer-name spelling is not a join key, so it is `EXACT`.
+If both delay and fee variance apply, use `FUZZY`. Customer-name spelling is not a join key.
 
-## Score one predictions file
+## Score one file by hand
 
 ```bash
 python evaluation_datasets/evaluator.py \
@@ -64,23 +64,20 @@ python evaluation_datasets/evaluator.py \
   --predictions evaluation_datasets/_work/hard_100/predictions.json
 ```
 
-## Adversarial protocol (independent)
+## Harder “break it” suites
 
-Same ingest → agent → `evaluator.py` path. Does **not** touch the held-out
-sets or matcher / classifier / evaluator code. PENDING is scored only in
-`run_adversarial.py`.
+Same path: adapt → agent → `evaluator.py`. Does not change the held-out CSVs or the matcher / classifier / evaluator code. Pending is scored in `run_adversarial.py` only.
 
 ```bash
-./venv/bin/python evaluation_datasets/_generate_adversarial.py   # rebuild CSVs
+./venv/bin/python evaluation_datasets/_generate_adversarial.py   # rebuild if the generator changed
 ./venv/bin/python evaluation_datasets/run_adversarial.py
 ```
 
-Summary: `evaluation_datasets/adversarial_evaluation.json`.
-Suite notes: `evaluation_datasets/adversarial/README.md`.
+Summary: `evaluation_datasets/adversarial_evaluation.json`  
+Suite notes: `evaluation_datasets/adversarial/README.md`
 
-Report order is the same as held-out, plus ingest pass/fail. False MATCH
-includes a PENDING row that the agent auto-cleared.
+Same priority order as held-out, plus whether ingest passed. Clearing a pending row as a match counts as a false clear.
 
-## Native demo data
+## Demo data in `data/`
 
-`python main.py --regen` still builds synthetic `data/`. Missing files no longer silently regenerate a 70-row demo.
+`python main.py --regen` rebuilds the small synthetic demo. Missing files no longer quietly regenerate a 70-row set without you asking.

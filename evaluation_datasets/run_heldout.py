@@ -40,7 +40,7 @@ def run_agent(engine_dir: Path, use_ml: bool = False) -> tuple[dict, list, str]:
         classified = ml_classifier.classify_exceptions(results["exceptions"], dupes)
         mode = "ml"
     else:
-        classified = ec.classify_exceptions(results["exceptions"], dupes, use_llm=False)
+        classified = ec.classify_exceptions(results["exceptions"], dupes)
         mode = "rule_based"
     return results, classified, mode
 

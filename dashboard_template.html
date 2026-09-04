@@ -385,24 +385,11 @@ const s = data.summary;
 
 const modeLabels = {
   rule_based: 'Rule-based',
-  gemini_api: 'Gemini API',
   ml: 'Self-trained model',
-  gemini_fallback_to_rule_based: `Gemini API (fell back to rule-based for ${s.gemini_fallback_count} of ${s.exceptions} exceptions)`,
-  ml_with_gemini_escalation: `Self-trained model + Gemini escalation (${s.escalation_attempted_count} of ${s.exceptions} low-confidence exceptions escalated)`
 };
 
 document.getElementById('fMode').textContent = modeLabels[s.classifier_mode] || s.classifier_mode;
 
-if (s.gemini_fallback_count > 0) {
-  const banner = document.getElementById('fallbackBanner');
-  banner.style.display = 'block';
-  banner.textContent = `⚠️ Gemini API unavailable for ${s.gemini_fallback_count} exception${s.gemini_fallback_count > 1 ? 's' : ''} this run; the rule-based explanation was retained.`;
-} else if (s.escalation_attempted_count > 0 && s.escalation_succeeded_count < s.escalation_attempted_count) {
-  const failedCount = s.escalation_attempted_count - s.escalation_succeeded_count;
-  const banner = document.getElementById('fallbackBanner');
-  banner.style.display = 'block';
-  banner.textContent = `⚠️ Gemini API unavailable for ${failedCount} low-confidence exception escalation${failedCount > 1 ? 's' : ''} this run; local model predictions were retained.`;
-}
 document.getElementById('fTotal').textContent = s.total_transactions;
 document.getElementById('tExact').textContent = s.exact_matches;
 document.getElementById('tFuzzy').textContent = s.fuzzy_matches;
@@ -593,13 +580,6 @@ data.exceptions.forEach(e=>{
     : '—';
 
   let fallbackTag = '';
-  if (e.actually_used === 'rule_based_fallback') {
-    fallbackTag = ' <span style="font-size:0.7rem; color:var(--rust-2); font-family:\'IBM Plex Mono\', monospace; margin-left:6px;">(fallback)</span>';
-  } else if (e.actually_used === 'gemini_escalation') {
-    fallbackTag = ' <span style="font-size:0.7rem; color:var(--forest-2); font-family:\'IBM Plex Mono\', monospace; margin-left:6px;">(Gemini reviewed)</span>';
-  } else if (e.actually_used === 'ml_escalation_attempted_fallback') {
-    fallbackTag = ' <span style="font-size:0.7rem; color:var(--rust); font-family:\'IBM Plex Mono\', monospace; margin-left:6px;">(escalation failed)</span>';
-  }
 
   const items = presented.facts.map((f) => `<li>${escapeHtml(f)}</li>`).join("");
 
@@ -621,12 +601,8 @@ data.exceptions.forEach(e=>{
 
 // Provenance calculation
 const provCounts = {
-  gemini_api: 0,
-  rule_based_fallback: 0,
   rule_based: 0,
   ml: 0,
-  gemini_escalation: 0,
-  ml_escalation_attempted_fallback: 0
 };
 
 data.exceptions.forEach(e => {
@@ -635,12 +611,8 @@ data.exceptions.forEach(e => {
 });
 
 const labelMap = {
-  gemini_api: 'Gemini API',
-  rule_based_fallback: 'Gemini Fallback',
   rule_based: 'Rule-based',
   ml: 'Local ML Model',
-  gemini_escalation: 'Gemini Escalated',
-  ml_escalation_attempted_fallback: 'Escalation Failed'
 };
 
 const provString = Object.entries(provCounts)

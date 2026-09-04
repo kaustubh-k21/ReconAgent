@@ -250,6 +250,16 @@
   button.btn:disabled{opacity:0.35;cursor:not-allowed;transform:none;}
   button.btn.ghost,a.btn.ghost{background:transparent;color:var(--ink);}
   button.btn.primary{background:var(--forest);border-color:var(--forest);}
+  button.btn.tiny{
+    font-size:0.58rem;
+    letter-spacing:0.06em;
+    padding:6px 8px;
+    background:transparent;
+    color:var(--ink);
+    border-color:var(--rule);
+  }
+  button.btn.tiny.danger{color:var(--rust-2);border-color:var(--rust-2);}
+  .override-cell{display:flex;flex-direction:column;gap:6px;min-width:7.5rem;}
 
   .stamp{
     display:inline-block;
@@ -593,7 +603,7 @@
     <div class="bar-track" id="resultsBar"></div>
     <div class="bar-legend" id="resultsLegend"></div>
     <h2 class="section" id="exceptionsPanel" tabindex="-1"><span class="idx">04</span> Exception review</h2>
-    <p class="deck" id="queueDeck">Default queue is the exception list. Reconciled and pending rows stay on secondary tabs so a cleared match can still be audited.</p>
+    <p class="deck" id="queueDeck">Default queue is the exception list. Use Force match / Force exception with an audit note when the operator overrules the engine. Reconciled and pending rows stay on secondary tabs.</p>
     <div class="queue-tabs" id="queueTabs" role="tablist" aria-label="Reconciliation queues">
       <button type="button" role="tab" id="tab-review" aria-selected="true" data-tab="review">Needs review<span class="count" id="count-review">0</span></button>
       <button type="button" role="tab" id="tab-reconciled" aria-selected="false" data-tab="reconciled">Reconciled<span class="count" id="count-reconciled">0</span></button>
@@ -623,6 +633,7 @@ const ROLES = ["ledger", "gateway", "bank"];
 const AUTO_CONFIRM = 0.9; // matching_policy.json → confidence.auto
 const UNCERTAIN_CAUSES = new Set([
   "unexplained", "unexplained_variance", "ambiguous_match", "wrong_transaction",
+  "chargeback", "reversal", "operator_override",
 ]);
 let batch = null;
 let lastResults = null;
@@ -914,12 +925,15 @@ const CAUSE_LABEL = {
   missing_settlement: "Missing settlement",
   refund_partial: "Partial refund",
   refund_full: "Full refund",
+  chargeback: "Chargeback / dispute",
+  reversal: "Settlement reversal",
   duplicate_credit: "Duplicate bank credit",
   duplicate_entry: "Duplicate ledger entry",
   duplicate_gateway: "Duplicate settlement",
   amount_mismatch: "Amount mismatch",
   unexplained_variance: "Unexplained residual",
   unexplained: "Needs review",
+  operator_override: "Operator override",
 };
 
 function presentException(ex) {
@@ -1028,16 +1042,21 @@ function exceptionRow(ex) {
   const showConf = showClassificationConfidence(ex);
   const pct = showConf ? Math.round(Number(ex.confidence) * 100) : null;
   const presented = presentException(ex);
+  const oid = ex.order_id || "";
   const tr = document.createElement("tr");
   tr.innerHTML = `
-    <td class="mono">${escapeHtml(ex.order_id || "")}</td>
+    <td class="mono">${escapeHtml(oid)}</td>
     <td class="num-cell">${formatInr(ex.amount)}</td>
     <td><span class="stamp fail">${escapeHtml((ex.severity || "").toUpperCase())}</span></td>
     <td><span class="stamp warn">${escapeHtml(presented.label)}</span></td>
     <td>${showConf
       ? `<span class="confidence-uncertain" title="Classifier score ${pct}%. Not a calibrated probability. Auto-confirm bar is ${Math.round(AUTO_CONFIRM * 100)}%.">Needs review</span>`
       : `<span class="confidence-muted" title="Established classification — score withheld">—</span>`}</td>
-    <td>${evidenceHtml(ex)}</td>`;
+    <td>${evidenceHtml(ex)}</td>
+    <td class="override-cell">
+      <button type="button" class="btn tiny" data-override="force_match" data-oid="${escapeHtml(oid)}">Force match</button>
+      <button type="button" class="btn tiny" data-override="force_pending" data-oid="${escapeHtml(oid)}">Mark pending</button>
+    </td>`;
   return tr;
 }
 
@@ -1051,23 +1070,32 @@ function matchOutcome(kind) {
 
 function matchRow(rec, kind) {
   const [cls, label] = matchOutcome(kind);
+  const oid = rec.order_id || "";
   const tr = document.createElement("tr");
   tr.innerHTML = `
-    <td class="mono">${escapeHtml(rec.order_id || "")}</td>
+    <td class="mono">${escapeHtml(oid)}</td>
     <td class="num-cell">${formatInr(rec.amount)}</td>
     <td><span class="stamp ${cls}">${escapeHtml(label)}</span></td>
     <td class="mono">${escapeHtml(rec.matched_by_rule || "—")}</td>
-    <td>${escapeHtml(rec.note || "—")}</td>`;
+    <td>${escapeHtml(rec.note || "—")}</td>
+    <td class="override-cell">
+      <button type="button" class="btn tiny danger" data-override="force_exception" data-oid="${escapeHtml(oid)}">Force exception</button>
+    </td>`;
   return tr;
 }
 
 function pendingRow(rec) {
+  const oid = rec.order_id || "";
   const tr = document.createElement("tr");
   tr.innerHTML = `
-    <td class="mono">${escapeHtml(rec.order_id || "")}</td>
+    <td class="mono">${escapeHtml(oid)}</td>
     <td class="num-cell">${formatInr(rec.amount)}</td>
     <td><span class="stamp idle">Pending bank</span></td>
-    <td>${escapeHtml(rec.note || "Bank credit not yet due")}</td>`;
+    <td>${escapeHtml(rec.note || "Bank credit not yet due")}</td>
+    <td class="override-cell">
+      <button type="button" class="btn tiny" data-override="force_match" data-oid="${escapeHtml(oid)}">Force match</button>
+      <button type="button" class="btn tiny danger" data-override="force_exception" data-oid="${escapeHtml(oid)}">Force exception</button>
+    </td>`;
   return tr;
 }
 
@@ -1118,17 +1146,17 @@ function renderQueue(data) {
   };
   let rows = [];
   if (queueTab === "review") {
-    setThead(["Order ID", "Amount", "Severity", "Cause", "Confidence", "Evidence &amp; explanation"]);
+    setThead(["Order ID", "Amount", "Severity", "Cause", "Confidence", "Evidence &amp; explanation", "Override"]);
     rows = exceptions.map(exceptionRow);
   } else if (queueTab === "reconciled") {
-    setThead(["Order ID", "Amount", "Outcome", "Rule", "Note"]);
+    setThead(["Order ID", "Amount", "Outcome", "Rule", "Note", "Override"]);
     rows = [
       ...exact.map((r) => matchRow(r, "exact")),
       ...fuzzy.map((r) => matchRow(r, "fuzzy")),
       ...review.map((r) => matchRow(r, "review")),
     ];
   } else if (queueTab === "pending") {
-    setThead(["Order ID", "Amount", "Status", "Note"]);
+    setThead(["Order ID", "Amount", "Status", "Note", "Override"]);
     rows = pending.map(pendingRow);
   } else {
     setThead(["Order ID", "Amount", "Outcome", "Detail"]);
@@ -1141,12 +1169,61 @@ function renderQueue(data) {
     ];
   }
   const total = appendCapped(tbody, rows);
+  tbody.querySelectorAll("[data-override]").forEach((btn) => {
+    btn.addEventListener("click", () => {
+      submitOverride(btn.dataset.oid, btn.dataset.override);
+    });
+  });
   if (!rows.length) {
     const cols = $("excTable").querySelectorAll("thead th").length || 4;
     tbody.innerHTML = `<tr><td colspan="${cols}" class="queue-empty">${empty[queueTab]}</td></tr>`;
   }
+  const overrides = (data.overrides || []).length;
+  const overrideNote = overrides ? ` ${overrides} operator override(s) recorded.` : "";
   const capNote = total > QUEUE_CAP ? ` Showing first ${QUEUE_CAP} of ${total}.` : "";
-  $("queueNote").textContent = notes[queueTab] + capNote;
+  $("queueNote").textContent = notes[queueTab] + capNote + overrideNote;
+}
+
+async function submitOverride(orderId, action) {
+  if (!batch?.batch_id || !orderId) return;
+  const labels = {
+    force_match: "force match",
+    force_exception: "force exception",
+    force_pending: "mark pending",
+  };
+  const note = window.prompt(
+    `Audit note required to ${labels[action] || action} for ${orderId}:`,
+    ""
+  );
+  if (note === null) return;
+  if (String(note).trim().length < 3) {
+    window.alert("Please enter an audit note (at least 3 characters).");
+    return;
+  }
+  try {
+    lastResults = await api(`/api/batches/${batch.batch_id}/override`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        order_id: orderId,
+        action,
+        note: String(note).trim(),
+        operator: "operator",
+      }),
+    });
+    renderQueue(lastResults);
+    if (lastResults.summary) {
+      // keep summary tiles roughly in sync if present
+      const s = lastResults.summary;
+      const tally = $("resultsTally");
+      if (tally) {
+        /* summary already rendered; queue counts update via renderQueue */
+      }
+      void s;
+    }
+  } catch (err) {
+    window.alert(err.message || String(err));
+  }
 }
 
 async function loadFullResults(batchId) {

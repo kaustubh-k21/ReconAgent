@@ -176,6 +176,25 @@ class ControllerHandler(BaseHTTPRequestHandler):
                 self._send_json(state)
                 return
 
+            if path.startswith("/api/batches/") and path.endswith("/override"):
+                batch_id = path.strip("/").split("/")[2]
+                length = int(self.headers.get("Content-Length", "0"))
+                raw = self.rfile.read(length) if length else b"{}"
+                try:
+                    payload = json.loads(raw.decode("utf-8") or "{}")
+                except json.JSONDecodeError as e:
+                    self._send_json({"error": f"invalid JSON: {e}"}, 400)
+                    return
+                results = cb.apply_override(
+                    batch_id,
+                    order_id=str(payload.get("order_id") or ""),
+                    action=str(payload.get("action") or ""),
+                    note=str(payload.get("note") or ""),
+                    operator=str(payload.get("operator") or "operator"),
+                )
+                self._send_json(results)
+                return
+
             if "/upload/" in path and path.startswith("/api/batches/"):
                 parts = path.strip("/").split("/")
                 if len(parts) != 5 or parts[3] != "upload":

@@ -97,10 +97,20 @@ def classify_exceptions(exceptions, ledger_dupe_counts, model_path=DEFAULT_MODEL
         record = dict(record)
         record["ledger_dupe_count"] = ledger_dupe_counts.get(record["order_id"], 1)
         result = ml_classify(record, bundle=bundle)
+        symptoms = set(record.get("symptoms") or [])
+        link_suspicion = None
+        if "wrong_transaction_candidate" in symptoms:
+            link_suspicion = "wrong_transaction"
+        elif "ambiguous_match_candidate" in symptoms:
+            link_suspicion = "ambiguous_match"
+        # If the model already predicted the lookalike label, keep it on cause only.
+        if result["cause"] in ("wrong_transaction", "ambiguous_match"):
+            link_suspicion = None
         classified.append({
             "order_id": record["order_id"],
             "amount": record["ledger"]["amount"],
             "cause": result["cause"],
+            "link_suspicion": link_suspicion,
             "confidence": result["confidence"],
             "reasoning": result["reasoning"],
             "actually_used": "ml",
@@ -109,5 +119,7 @@ def classify_exceptions(exceptions, ledger_dupe_counts, model_path=DEFAULT_MODEL
             "age_days": record.get("age_days", 0),
             "leg_a": record.get("leg_a"),
             "leg_b": record.get("leg_b"),
+            "candidate_bank_refs": record.get("candidate_bank_refs"),
+            "candidate_settlement_ids": record.get("candidate_settlement_ids"),
         })
     return classified
